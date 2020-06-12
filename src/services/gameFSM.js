@@ -1,38 +1,19 @@
 'use strict';
 
 const logger = require('../util/logger.js');
-const WebSocket = require('ws');
 const { Machine, interpret } = require('xstate');
 const hardCodedIssues = require('../../data/issuesSmall.json');
-const { sendJSObject } = require('../util/websocket');
+const {
+  sendGameState,
+  sendIssueClosed,
+  sendIssueOpened,
+  sendPlayerAdded,
+  sendUpdatedPoints,
+} = require('./clientEvents');
 
 const log = logger.getLoggerByFilename({ filename: __filename });
 
 const FSMs = {};
-
-const getPlayersState = players => {
-  return Object.values(players).map(({ playerId, playerOrder, websocket }) => ({
-    id: playerId,
-    connected: websocket.readyState === WebSocket.OPEN, // possible options are CONNECTING, OPEN, CLOSING or CLOSED
-    playerOrder,
-  }));
-};
-
-const sendGameState = ({ activePlayerId, gameId, issues, gameOwnerId, players }) => {
-  Object.values(players).forEach(({ playerId, websocket }) => {
-    sendJSObject(websocket, {
-      gameState: {
-        phase: 0, // TODO
-        activePlayerId,
-        gameId,
-        gameOwnerId,
-        playerId,
-        players: getPlayersState(players),
-        issues,
-      },
-    });
-  });
-};
 
 const isActivePlayer = (context, event) => {
   const { activePlayerId } = context;
@@ -70,6 +51,16 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
               actions: ['updatePoints'],
               cond: isActivePlayer,
             },
+            OPEN_ISSUE: {
+              target: 'active',
+              actions: ['openIssue'],
+              cond: isActivePlayer,
+            },
+            CLOSE_ISSUE: {
+              target: 'active',
+              actions: ['closeIssue'],
+              cond: isActivePlayer,
+            },
           },
         },
         finish: {
@@ -91,18 +82,27 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
           if (playerOrder === 0) {
             context.activePlayerId = playerId;
           }
-          sendGameState(context);
+          sendGameState({ context, eventByPlayerId: playerId });
+          sendPlayerAdded({ context, eventByPlayerId: playerId });
         },
         updatePoints: (context, event) => {
           const { issues } = context;
-          const { issueId, points } = event;
+          const { issueId, playerId, points } = event;
           const issue = issues.find(({ id }) => id === issueId);
           if (issue) {
             issue.currentPoints = points;
           } else {
             log.warn(`Issue not found while trying to update points. [issueId:${issueId}]`);
           }
-          sendGameState(context);
+          sendUpdatedPoints({ context, issue, eventByPlayerId: playerId });
+        },
+        openIssue: (context, event) => {
+          const { issueId, playerId } = event;
+          sendIssueOpened({ context, issueId, eventByPlayerId: playerId });
+        },
+        closeIssue: (context, event) => {
+          const { issueId, playerId } = event;
+          sendIssueClosed({ context, issueId, eventByPlayerId: playerId });
         },
       },
       activities: {

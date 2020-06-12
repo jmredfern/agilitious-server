@@ -27,20 +27,6 @@
 		"status": "TO DO",
 		"title": "Duplicate Users Can be created with two different API calls",
 		"type": "Bug"
-	  },
-	  {
-		"id": "0f845e4b-ca7b-419d-b963-8eeae980c0b9",
-		"acceptanceCriteria": "",
-		"created": 1587016140000,
-		"currentPoints": 5,
-		"description": "",
-		"epicId": "",
-		"key": "EN-239",
-		"originalPoints": 5,
-		"reporter": "brian.lutz",
-		"status": "TO DO",
-		"title": "Downloading the Terms and Conditions PDF and opening it in Preview shows the user a blank document",
-		"type": "Bug"
 	  }
 	]
   }
