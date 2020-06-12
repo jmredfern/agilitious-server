@@ -1,11 +1,17 @@
 'use strict';
 
 const logger = require('../util/logger.js');
+const log = logger.getLoggerByFilename({ filename: __filename });
 const inspect = require('util').inspect;
 const { Machine, interpret } = require('xstate');
 const hardCodedIssues = require('../../data/issuesSmall.json');
 const { validateFibonacciNumber } = require('../util/points.js');
-const { getPlayerIndex, getNewActivePlayerId } = require('../util/player.js');
+const {
+  getNewActivePlayerId,
+  getPlayer,
+  getPlayerIndex,
+  isEveryoneFinished,
+} = require('../util/player.js');
 const {
   sendGameState,
   sendIssueClosed,
@@ -15,8 +21,6 @@ const {
   sendMoveConfirmed,
   sendPlayerSkipped,
 } = require('./clientEvents');
-
-const log = logger.getLoggerByFilename({ filename: __filename });
 
 const FSMs = {};
 
@@ -38,6 +42,7 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
         gameId,
         issues: hardCodedIssues.issues,
         gameOwnerId,
+        phase: 'PLAYING',
         players: [],
       },
       id: 'gameFSM',
@@ -95,7 +100,7 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
           const { players } = context;
           const { playerId, websocket } = event;
           const player = { playerId, websocket };
-          const playerIndex = getPlayerIndex({ players, playerIdToFind: playerId });
+          const playerIndex = getPlayerIndex({ players, playerId });
           if (playerIndex !== -1) {
             players[playerIndex] = player;
           } else {
@@ -132,14 +137,22 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
           sendIssueClosed({ context, issueId, eventByPlayerId: playerId });
         },
         confirmMove: (context, event) => {
+          const { players } = context;
           const { playerId } = event;
+          const player = getPlayer({ players, playerId });
+          player.finished = false;
           context.activePlayerId = getNewActivePlayerId(context);
           sendMoveConfirmed({ context, eventByPlayerId: playerId });
         },
         noChange: (context, event) => {
+          const { players } = context;
           const { playerId } = event;
+          const player = getPlayer({ players, playerId });
+          player.finished = true;
           context.activePlayerId = getNewActivePlayerId(context);
-          // TODO transition to completed if everyone said no change
+          if (isEveryoneFinished(players)) {
+            context.phase = 'FINISHED';
+          }
           sendPlayerSkipped({ context, eventByPlayerId: playerId });
         }, 
       },

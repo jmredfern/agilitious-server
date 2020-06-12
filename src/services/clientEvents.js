@@ -1,11 +1,10 @@
 'use strict';
 
 const logger = require('../util/logger.js');
+const log = logger.getLoggerByFilename({ filename: __filename });
 const WebSocket = require('ws');
 const { sendJSObject } = require('../util/websocket');
 const { getPlayerIndex, isPlayerConnected } = require('../util/player.js');
-
-const log = logger.getLoggerByFilename({ filename: __filename });
 
 const getPlayersState = players => {
   return players.map(player => {
@@ -20,8 +19,8 @@ const getPlayersState = players => {
 const service = {};
 
 service.sendGameState = ({ context, eventByPlayerId }) => {
-  const { activePlayerId, gameId, issues, gameOwnerId, players } = context;
-  const playerIndex = getPlayerIndex({ players, playerIdToFind: eventByPlayerId });
+  const { activePlayerId, gameId, issues, gameOwnerId, phase, players } = context;
+  const playerIndex = getPlayerIndex({ players, playerId: eventByPlayerId });
   const { playerId, websocket } = players[playerIndex];
   sendJSObject(websocket, {
     type: 'GAME_STATE',
@@ -30,7 +29,7 @@ service.sendGameState = ({ context, eventByPlayerId }) => {
     gameId,
     gameOwnerId,
     issues,
-    phase: 0, // TODO
+    phase,
     playerId,
     players: getPlayersState(players),
   });
@@ -109,13 +108,14 @@ service.sendMoveConfirmed = ({ context, eventByPlayerId }) => {
 };
 
 service.sendPlayerSkipped = ({ context, eventByPlayerId }) => {
-  const { activePlayerId, gameId, players } = context;
+  const { activePlayerId, gameId, phase, players } = context;
   players.forEach(({ playerId, websocket }) => {
     sendJSObject(websocket, {
       type: 'PLAYER_SKIPPED',
       activePlayerId,
       eventByPlayerId,
       gameId,
+      phase,
       playerId,
       players: getPlayersState(players),
     });

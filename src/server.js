@@ -5,12 +5,12 @@ const exphbs = require('express-handlebars');
 const express = require('express');
 const inspect = require('util').inspect;
 const logger = require('./util/logger.js');
+const log = logger.getLoggerByFilename({ filename: __filename });
 const path = require('path');
 const uuid = require('uuid');
 const WebSocket = require('ws');
 const { getGameFSM } = require('./services/gameFSM');
 
-const log = logger.getLoggerByFilename({ filename: __filename });
 const app = express();
 
 const expressServer = createServer(app);

@@ -1,9 +1,8 @@
 'use strict';
 const logger = require('../util/logger.js');
+const log = logger.getLoggerByFilename({ filename: __filename });
 const WebSocket = require('ws');
 const inspect = require('util').inspect;
-
-const log = logger.getLoggerByFilename({ filename: __filename });
 
 const util = {};
 

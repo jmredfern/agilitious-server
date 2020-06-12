@@ -4,10 +4,9 @@ const client = require('./client.js');
 const commandLineArgs = require('command-line-args');
 const server = require('./server.js');
 const logger = require ('./util/logger.js');
+const log = logger.getLoggerByFilename({ filename: __filename });
 const inspect = require('util').inspect;
 inspect.defaultOptions = { depth: 16, compact: false, breakLength: Infinity };
-
-const log = logger.getLoggerByFilename({ filename: __filename });
 
 const optionDefinitions = [
   { name: 'client', alias: 'c', type: Boolean },
