@@ -11,6 +11,7 @@ const log = logger.getLoggerByFilename({ filename: __filename });
 const path = require('path');
 const uuid = require('uuid');
 const WebSocket = require('ws');
+const cors = require('cors');
 const { getGameFSM } = require('./services/gameFSM');
 
 const app = express();
@@ -39,6 +40,7 @@ wss.on('connection', websocket => {
 
 app.use(bodyParser.text({ extended: true, limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+app.use(cors());
 
 const rootPath = path.resolve(path.dirname(''));
 app.use('/assets/', express.static(path.join(rootPath, 'assets')))
@@ -47,7 +49,7 @@ app.use(express.static(path.join(__dirname, '../build')));
 app.engine('handlebars', exphbs());
 app.set('view engine', 'handlebars');
 
-app.put("/api/games/:gameId/issues", async (req, res) => {
+app.put("/api/games/:gameId/issues", cors(), async (req, res) => {
   const { gameId } = req.params;
   const { body: issuesCSV } = req;
   log.info(`Put issues for gameId ${gameId}`);
@@ -55,7 +57,7 @@ app.put("/api/games/:gameId/issues", async (req, res) => {
   res.status(200).send();
 })
 
-app.get("/api/games/:gameId/issues", (req, res) => {
+app.get("/api/games/:gameId/issues", cors(), (req, res) => {
   const { gameId } = req.params;
   log.info(`Get issues for gameId ${gameId}`);
   const issuesCSV = getCSVIssues({ gameId });
