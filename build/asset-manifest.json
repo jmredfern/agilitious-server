@@ -5,13 +5,13 @@
     "main.js.map": "/static/js/main.f0d6d8e0.chunk.js.map",
     "runtime-main.js": "/static/js/runtime-main.40b819e4.js",
     "runtime-main.js.map": "/static/js/runtime-main.40b819e4.js.map",
-    "static/js/2.9162768d.chunk.js": "/static/js/2.9162768d.chunk.js",
-    "static/js/2.9162768d.chunk.js.map": "/static/js/2.9162768d.chunk.js.map",
+    "static/js/2.a9345f33.chunk.js": "/static/js/2.a9345f33.chunk.js",
+    "static/js/2.a9345f33.chunk.js.map": "/static/js/2.a9345f33.chunk.js.map",
     "index.html": "/index.html",
-    "precache-manifest.58073bee789f8182a959bd2c12021ca4.js": "/precache-manifest.58073bee789f8182a959bd2c12021ca4.js",
+    "precache-manifest.310c717da547636462d857193eddc3de.js": "/precache-manifest.310c717da547636462d857193eddc3de.js",
     "service-worker.js": "/service-worker.js",
     "static/css/main.05ab7e1e.chunk.css.map": "/static/css/main.05ab7e1e.chunk.css.map",
-    "static/js/2.9162768d.chunk.js.LICENSE.txt": "/static/js/2.9162768d.chunk.js.LICENSE.txt",
+    "static/js/2.a9345f33.chunk.js.LICENSE.txt": "/static/js/2.a9345f33.chunk.js.LICENSE.txt",
     "static/media/index.css": "/static/media/Tradeshift-Display-Medium.683fbda8.woff2",
     "static/media/bird-2.svg": "/static/media/bird-2.2a95e580.svg",
     "static/media/bird.svg": "/static/media/bird.87ace9d5.svg",
@@ -24,7 +24,7 @@
   },
   "entrypoints": [
     "static/js/runtime-main.40b819e4.js",
-    "static/js/2.9162768d.chunk.js",
+    "static/js/2.a9345f33.chunk.js",
     "static/css/main.05ab7e1e.chunk.css",
     "static/js/main.f0d6d8e0.chunk.js"
   ]
