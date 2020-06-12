@@ -6,6 +6,8 @@ const log = logger.getLoggerByFilename({ filename: __filename });
 const uuid = require('uuid');
 const inspect = require('util').inspect;
 const { sendJSObject } = require('./util/websocket');
+const { getRandomPoints } = require('./util/points');
+const { getRandomIntInclusive } = require('./util/math');
 
 let websocketUrl;
 
@@ -24,7 +26,7 @@ const updatePoints = ({ gameId, playerId, websocket }) => {
   sendJSObject(websocket, {
 		type: 'UPDATE_POINTS',
 		playerId,
-		points: 2,
+		points: getRandomPoints(),
 		issueId: '2d47a5df-0bb8-40a6-a4be-de93c0312f77',
 		gameId,
 	});
@@ -34,8 +36,8 @@ const connect = () => {
   log.info(`Connecting to ${websocketUrl}`);
 
   const websocket = new WebSocket(websocketUrl);
-  const gameId = uuid.v4();
-  // const gameId = '5c747e2c-19dd-4674-9184-4d2cd3a773a3';
+  // const gameId = uuid.v4();
+  const gameId = '5c747e2c-19dd-4674-9184-4d2cd3a773a3';
   let connectionErrored = false;
   
   websocket.on('open', () => {
@@ -48,7 +50,9 @@ const connect = () => {
     const event = JSON.parse(eventJSON);
     log.info(`Client received: ${inspect(event)}`);
     const playerId = event.gameState.playerId;
-    updatePoints({ gameId, playerId, websocket });
+    setTimeout(function() {
+      updatePoints({ gameId, playerId, websocket });
+    }, getRandomIntInclusive(5000,15000)); 
   });
 
   websocket.on('close', () => {
