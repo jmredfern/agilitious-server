@@ -9,8 +9,6 @@ const { sendJSObject } = require('./util/websocket');
 const { getRandomPoints } = require('./util/points');
 const { getRandomIntInclusive } = require('./util/math');
 
-let websocketUrl;
-
 const ERROR_RETRY_TIMEOUT = 5000;
 
 const client = {};
@@ -18,7 +16,8 @@ const client = {};
 const joinGame = ({ gameId, playerId, websocket }) => {
   const event = {
 		type: 'JOIN_GAME',
-		gameId,
+    gameId,
+    id: uuid.v4(),
   };
   if (playerId) {
     event.playerId = playerId;
@@ -32,6 +31,21 @@ const getUpdatePointsEvent = ({ gameId, playerId }) => ({
   points: getRandomPoints(),
   issueId: '2d47a5df-0bb8-40a6-a4be-de93c0312f77',
   gameId,
+  id: uuid.v4(),
+});
+
+const getConfirmMoveEvent = ({ gameId, playerId }) => ({
+  type: 'CONFIRM_MOVE',
+  playerId,
+  gameId,
+  id: uuid.v4(),
+});
+
+const getNoChangeEvent = ({ gameId, playerId }) => ({
+  type: 'NO_CHANGE',
+  playerId,
+  gameId,
+  id: uuid.v4(),
 });
 
 const getOpenIssueEvent = ({ gameId, playerId }) => ({
@@ -39,6 +53,7 @@ const getOpenIssueEvent = ({ gameId, playerId }) => ({
   playerId,
   issueId: '2d47a5df-0bb8-40a6-a4be-de93c0312f77',
   gameId,
+  id: uuid.v4(),
 });
 
 const getCloseIssueEvent = ({ gameId, playerId }) => ({
@@ -46,15 +61,18 @@ const getCloseIssueEvent = ({ gameId, playerId }) => ({
   playerId,
   issueId: '2d47a5df-0bb8-40a6-a4be-de93c0312f77',
   gameId,
+  id: uuid.v4(),
 });
 
 let nextEvents;
 let nextEventIndex = 0;
 
 const getNextEvents = ({ gameId, playerId }) => ([
-  getUpdatePointsEvent({ gameId, playerId }),
   getOpenIssueEvent({ gameId, playerId }),
-  getCloseIssueEvent({ gameId, playerId }),  
+  getCloseIssueEvent({ gameId, playerId }),
+  getUpdatePointsEvent({ gameId, playerId }), 
+  getConfirmMoveEvent({ gameId, playerId }),
+  getNoChangeEvent({ gameId, playerId }),  
 ]);
 
 const sendNextEvent = websocket => {
@@ -63,14 +81,11 @@ const sendNextEvent = websocket => {
   }
 };
 
-const connect = () => {
+const connect = ({ gameId, playerId, websocketUrl }) => {
   log.info(`Connecting to ${websocketUrl}`);
 
   const websocket = new WebSocket(websocketUrl);
-  // const gameId = uuid.v4();
-  const gameId = '5c747e2c-19dd-4674-9184-4d2cd3a773a3';
-  const playerId = uuid.v4();
-  // const playerId = '7bf233fe-cb73-4e32-827f-b004abed1f18';
+
   let connectionErrored = false;
 
   websocket.on('open', () => {
@@ -83,6 +98,9 @@ const connect = () => {
   websocket.on('message', (eventJSON) => {
     const event = JSON.parse(eventJSON);
     log.info(`Client received: ${inspect(event)}`);
+    if (playerId !== '6fb1d710-38ca-4eb1-a9c8-ef0e4138696a') {
+      return;
+    }
     setTimeout(() => {
       sendNextEvent(websocket);
     }, 5000); 
@@ -98,7 +116,7 @@ const connect = () => {
     log.info('Client disconnected');
 
     setTimeout(() => {
-      connect();
+      connect({ gameId, playerId, websocketUrl });
     }, connectionErrored ? ERROR_RETRY_TIMEOUT : 0);
   });
   websocket.on('error', () => {
@@ -107,10 +125,9 @@ const connect = () => {
   });
 }
 
-client.start = ({ websocketUrl: _websocketUrl }) => {
-  websocketUrl = _websocketUrl;
-  log.info(`Starting client (websocketUrl: ${websocketUrl})`);
-  connect();
+client.start = ({ gameId = uuid.v4(), playerId = uuid.v4(), websocketUrl }) => {
+  log.info(`Starting client (websocketUrl: ${websocketUrl}, playerId: ${playerId}, gameId: ${gameId})`);
+  connect({ gameId, playerId, websocketUrl });
 };
 
 module.exports = client;

@@ -7,7 +7,7 @@
 node src/index.js --server --port 8000 --serverUrl http://localhost:8000
 
 # start client
-node src/index.js --client --websocketUrl ws://localhost:8000/
+node src/index.js --client --playerId UUID --gameId UUID --websocketUrl ws://localhost:8000/
 ```
 ## License
 

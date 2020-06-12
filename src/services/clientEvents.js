@@ -3,22 +3,26 @@
 const logger = require('../util/logger.js');
 const WebSocket = require('ws');
 const { sendJSObject } = require('../util/websocket');
+const { getPlayerIndex, isPlayerConnected } = require('../util/player.js');
 
 const log = logger.getLoggerByFilename({ filename: __filename });
 
 const getPlayersState = players => {
-  return Object.values(players).map(({ playerId, playerOrder, websocket }) => ({
-    id: playerId,
-    connected: websocket.readyState === WebSocket.OPEN, // possible options are CONNECTING, OPEN, CLOSING or CLOSED
-    playerOrder,
-  }));
+  return players.map(player => {
+    const { playerId } = player;
+    return {
+      id: playerId,
+      connected: isPlayerConnected(player),
+    };
+  });
 };
 
 const service = {};
 
 service.sendGameState = ({ context, eventByPlayerId }) => {
   const { activePlayerId, gameId, issues, gameOwnerId, players } = context;
-  const { playerId, websocket } = players[eventByPlayerId];
+  const playerIndex = getPlayerIndex({ players, playerIdToFind: eventByPlayerId });
+  const { playerId, websocket } = players[playerIndex];
   sendJSObject(websocket, {
     type: 'GAME_STATE',
     activePlayerId,
@@ -33,16 +37,14 @@ service.sendGameState = ({ context, eventByPlayerId }) => {
 };
 
 service.sendPlayerAdded = ({ context, eventByPlayerId }) => {
-  const { activePlayerId, gameId, gameOwnerId, players } = context;
-  Object.values(players).forEach(({ playerId, websocket }) => {
+  const { gameId, gameOwnerId, players } = context;
+  players.forEach(({ playerId, websocket }) => {
     if (playerId !== eventByPlayerId) {
       sendJSObject(websocket, {
         type: 'PLAYER_ADDED',
-        activePlayerId,
         eventByPlayerId,
         gameId,
         gameOwnerId,
-        phase: 0, // TODO
         playerId,
         players: getPlayersState(players),
       });      
@@ -51,11 +53,10 @@ service.sendPlayerAdded = ({ context, eventByPlayerId }) => {
 };
 
 service.sendUpdatedPoints = ({ context, issue, eventByPlayerId }) => {
-  const { activePlayerId, gameId, players } = context;
-  Object.values(players).forEach(({ playerId, websocket }) => {
+  const { gameId, players } = context;
+  players.forEach(({ playerId, websocket }) => {
     sendJSObject(websocket, {
       type: 'UPDATED_POINTS',
-      activePlayerId,
       eventByPlayerId,
       gameId,
       issue,
@@ -66,11 +67,10 @@ service.sendUpdatedPoints = ({ context, issue, eventByPlayerId }) => {
 };
 
 service.sendIssueOpened = ({ context, issueId, eventByPlayerId }) => {
-  const { activePlayerId, gameId, players } = context;
-  Object.values(players).forEach(({ playerId, websocket }) => {
+  const { gameId, players } = context;
+  players.forEach(({ playerId, websocket }) => {
     sendJSObject(websocket, {
       type: 'ISSUE_OPENED',
-      activePlayerId,
       eventByPlayerId,
       gameId,
       issueId,
@@ -81,16 +81,43 @@ service.sendIssueOpened = ({ context, issueId, eventByPlayerId }) => {
 };
 
 service.sendIssueClosed = ({ context, issueId, eventByPlayerId }) => {
-  const { activePlayerId, gameId, players } = context;
-  Object.values(players).forEach(({ playerId, websocket }) => {
+  const { gameId, players } = context;
+  players.forEach(({ playerId, websocket }) => {
     sendJSObject(websocket, {
       type: 'ISSUE_CLOSED',
-      activePlayerId,
       eventByPlayerId,
       gameId,
       playerId,
       players: getPlayersState(players),
       issueId,
+    });
+  });
+};
+
+service.sendMoveConfirmed = ({ context, eventByPlayerId }) => {
+  const { activePlayerId, gameId, players } = context;
+  players.forEach(({ playerId, websocket }) => {
+    sendJSObject(websocket, {
+      type: 'MOVE_CONFIRMED',
+      activePlayerId,
+      eventByPlayerId,
+      gameId,
+      playerId,
+      players: getPlayersState(players),
+    });
+  });
+};
+
+service.sendPlayerSkipped = ({ context, eventByPlayerId }) => {
+  const { activePlayerId, gameId, players } = context;
+  players.forEach(({ playerId, websocket }) => {
+    sendJSObject(websocket, {
+      type: 'PLAYER_SKIPPED',
+      activePlayerId,
+      eventByPlayerId,
+      gameId,
+      playerId,
+      players: getPlayersState(players),
     });
   });
 };
