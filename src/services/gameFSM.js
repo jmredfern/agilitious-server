@@ -4,7 +4,7 @@ const logger = require('../util/logger.js');
 const log = logger.getLoggerByFilename({ filename: __filename });
 const inspect = require('util').inspect;
 const { Machine, interpret } = require('xstate');
-const hardCodedIssues = require('../../data/issuesSmall.json');
+const hardCodedIssues = require('../../data/issues.json');
 const { validateFibonacciNumber } = require('../util/points.js');
 const {
   getNewActivePlayerId,
