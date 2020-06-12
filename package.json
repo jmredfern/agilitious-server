@@ -66,14 +66,10 @@
     ]
   },
   "main": "src/index.js",
-  "name": "button-clicker",
+  "name": "agilitious",
   "private": true,
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/jmredfern/instant-replay-button-clicker"
-  },
   "scripts": {
-    "start": "node src/index.js --server --serverUrl https://lit-refuge-18863.herokuapp.com",
+    "start": "node src/index.js --server",
     "test": "jest"
   },
   "version": "0.0.0"
