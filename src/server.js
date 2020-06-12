@@ -71,10 +71,12 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
           }
         },
         active: {
-          JOIN_GAME: {
-            target: 'active',
-            actions: ['addPlayer'],
-          },
+          on: {
+            JOIN_GAME: {
+              target: 'active',
+              actions: ['addPlayer'],
+            },
+          }
         },
         finish: {
           type: 'final'

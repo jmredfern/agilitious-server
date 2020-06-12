@@ -17,10 +17,10 @@ const sendJSObject = (websocket, object) => {
   websocket.send(JSON.stringify(object));
 }
 
-const joinGame = websocket => {
+const joinGame = ({ websocket, gameId }) => {
   sendJSObject(websocket, {
 		type: 'JOIN_GAME',
-		gameId: uuid.v4(),
+		gameId,
 	});
 }
 
@@ -33,7 +33,9 @@ const connect = () => {
   websocket.on('open', () => {
     log.info('Client connected');
     connectionErrored = false;
-    joinGame(websocket);
+    // const gameId = uuid.v4();
+    const gameId = '5c747e2c-19dd-4674-9184-4d2cd3a773a3';
+    joinGame({ gameId, websocket });
   });
 
   websocket.on('message', (eventJSON) => {
