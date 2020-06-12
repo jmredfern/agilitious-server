@@ -53,8 +53,8 @@ let nextEventIndex = 0;
 
 const getNextEvents = ({ gameId, playerId }) => ([
   getUpdatePointsEvent({ gameId, playerId }),
-  // getOpenIssueEvent({ gameId, playerId }),
-  // getCloseIssueEvent({ gameId, playerId }),  
+  getOpenIssueEvent({ gameId, playerId }),
+  getCloseIssueEvent({ gameId, playerId }),  
 ]);
 
 const sendNextEvent = websocket => {
@@ -85,7 +85,10 @@ const connect = () => {
     log.info(`Client received: ${inspect(event)}`);
     setTimeout(() => {
       sendNextEvent(websocket);
-    }, getRandomIntInclusive(10000,20000)); 
+    }, 5000); 
+    // setTimeout(() => {
+    //   sendNextEvent(websocket);
+    // }, getRandomIntInclusive(10000,20000)); 
     // setTimeout(() => {
     //   updatePoints({ gameId, playerId, websocket });
     // }, getRandomIntInclusive(5000,15000)); 
