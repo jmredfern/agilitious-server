@@ -3,8 +3,9 @@
 const logger = require('../util/logger.js');
 const log = logger.getLoggerByFilename({ filename: __filename });
 const inspect = require('util').inspect;
+const { getIssues } = require('./issueStore.js');
 const { Machine, interpret } = require('xstate');
-const hardCodedIssues = require('../../data/issues.json');
+const hardCodedIssues = require('../../data/issuesSmall.json');
 const { validateFibonacciNumber } = require('../util/points.js');
 const {
   getNewActivePlayerId,
@@ -40,7 +41,7 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
     {
       context: {
         gameId,
-        issues: hardCodedIssues.issues,
+        issues: getIssues({ gameId }) || hardCodedIssues.issues,
         gameOwnerId,
         phase: 'PLAYING',
         players: [],

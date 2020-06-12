@@ -30,7 +30,7 @@ const getUpdatePointsEvent = ({ gameId, playerId }) => ({
   type: 'UPDATE_POINTS',
   playerId,
   points: getRandomPoints(),
-  issueId: '2d47a5df-0bb8-40a6-a4be-de93c0312f77',
+  issueId: '8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
   gameId,
   id: uuid.v4(),
 });
@@ -52,7 +52,7 @@ const getNoChangeEvent = ({ gameId, playerId }) => ({
 const getOpenIssueEvent = ({ gameId, playerId }) => ({
   type: 'OPEN_ISSUE',
   playerId,
-  issueId: '2d47a5df-0bb8-40a6-a4be-de93c0312f77',
+  issueId: '8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
   gameId,
   id: uuid.v4(),
 });
@@ -60,7 +60,7 @@ const getOpenIssueEvent = ({ gameId, playerId }) => ({
 const getCloseIssueEvent = ({ gameId, playerId }) => ({
   type: 'CLOSE_ISSUE',
   playerId,
-  issueId: '2d47a5df-0bb8-40a6-a4be-de93c0312f77',
+  issueId: '8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
   gameId,
   id: uuid.v4(),
 });
