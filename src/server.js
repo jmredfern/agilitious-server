@@ -7,6 +7,10 @@ const path = require('path');
 const WebSocket = require('ws');
 const exphbs = require('express-handlebars');
 const { Machine, interpret } = require('xstate');
+const hardCodedIssues = require('../data/issues.json');
+const uuid = require('uuid');
+const inspect = require('util').inspect;
+inspect.defaultOptions = { depth: 16, compact: false, breakLength: Infinity };
 
 const log = logger.getLoggerByFilename({ filename: __filename });
 
@@ -14,26 +18,131 @@ const app = express();
 
 const expressServer = createServer(app);
 const wss = new WebSocket.Server({ server: expressServer });
+const FSMs = {};
 
-let websocket;
-let clickPending = false;
-let isConnected = false;
 let serverUrl;
 
-wss.on('connection', (ws) => {
-  log.info('Client connected');
-  isConnected = true;
-  websocket = ws;
-  if (clickPending) {
-    processClick({ websocket });
+const getPlayersState = players => {
+  return Object.values(players).map(({ playerId, playerOrder, websocket }) => ({
+    id: playerId,
+    connected: websocket.readyState === WebSocket.OPEN, // possible options are CONNECTING, OPEN, CLOSING or CLOSED
+    playerOrder,
+  }));
+};
+
+const sendJSObject = (websocket, object) => {
+  websocket.send(JSON.stringify(object));
+}
+
+const sendGameState = ({ activePlayerId, gameId, issues, gameOwnerId, players }) => {
+  Object.values(players).forEach(({ playerId, websocket }) => {
+    sendJSObject(websocket, {
+      gameState: {
+        phase: 0, // TODO
+        activePlayerId,
+        gameId,
+        gameOwnerId,
+        playerId,
+        players: getPlayersState(players),
+        issues,
+      },
+    });
+  });
+};
+
+const createGameFSM = (gameId, gameOwnerId) => {
+  const gameMachine = Machine(
+    {
+      context: {
+        gameId,
+        issues: hardCodedIssues,
+        gameOwnerId,
+        players: {},
+      },
+      id: 'gameFSM',
+      initial: 'start',
+      states: {
+        start: {
+          on: {
+            JOIN_GAME: {
+              target: 'active',
+              actions: ['addPlayer'],
+            },
+          }
+        },
+        active: {
+          JOIN_GAME: {
+            target: 'active',
+            actions: ['addPlayer'],
+          },
+        },
+        finish: {
+          type: 'final'
+        },
+      },
+    },
+    {
+      actions: {
+        addPlayer: (context, { playerId, websocket }) => {
+          const { players } = context;
+          const playerOrder = Object.keys(players).length;
+          players[playerId] = {
+            playerId,
+            playerOrder,
+            websocket
+          };
+          if (playerOrder === 0) {
+            context.activePlayerId = playerId;
+          }
+          sendGameState(context);
+        }
+      },
+      activities: {
+        /* ... */
+      },
+      guards: {
+        /* ... */
+      },
+      services: {
+        /* ... */
+      }
+    },
+  );
+  const gameService = interpret(gameMachine).onTransition(state =>
+    log.info(state.value)
+  );
+  gameService.start();
+  return gameService;
+}
+
+const getGameFSM = ({ gameId, playerId }) => {
+  if (!FSMs[gameId]) {
+    const gameFSM = createGameFSM({
+      gameId,
+      gameOwnerId: playerId,
+    });
+    FSMs[gameId] = gameFSM;
   }
-  websocket.on('message', (data) => {
-    log.debug(`Server received: ${data}`);
+  
+  return FSMs[gameId];
+}
+
+const processPlayerEvent = ({ event, websocket }) => {
+  const { gameId, playerId = uuid.v4() } = event;
+  const gameFSM = getGameFSM({ gameId, playerId });
+  gameFSM.send({ ...event, playerId, websocket });
+};
+
+wss.on('connection', websocket => {
+  log.info('Client connected');
+  websocket.on('message', eventJSON => {
+    const event = JSON.parse(eventJSON);
+    log.info(`Server received: ${inspect(event)}`);
+    processPlayerEvent({ event, websocket });
   });
 
   websocket.on('close', () => {
     log.info('Client disconnected');
-    isConnected = false;
   });
 });
 
@@ -47,27 +156,12 @@ server.start = ({ port, serverUrl: _serverUrl }) => {
   });
 };
 
-const processClick = ({ websocket }) => {
-  clickPending = true;
-  if (!websocket || !isConnected) {
-    return;
-  }
-  log.info('Sending click');
-  clickPending = false;
-  websocket.send('click');
-}
-
-app.post('/click', (req, res) => {
-  log.info('Click received');
-  toggleService.send('TOGGLE');
-  // processClick({ websocket });
-  res.status(200).send();
-})
-
-app.post('/anti-idle', (req, res) => {
-  log.info('Anti-idle triggered');
-  res.status(200).send();
-})
+// app.post('/click', (req, res) => {
+//   log.info('Click received');
+//   toggleService.send('TOGGLE');
+//   // processClick({ websocket });
+//   res.status(200).send();
+// })
 
 const rootPath = path.resolve(path.dirname(''));
 app.use('/assets/', express.static(path.join(rootPath, 'assets')))
@@ -81,21 +175,5 @@ app.get('/', (req, res, next) => {
       }
   });
 });
-
-// Stateless machine definition
-// machine.transition(...) is a pure function used by the interpreter.
-const toggleMachine = Machine({
-  id: 'toggle',
-  initial: 'inactive',
-  states: {
-    inactive: { on: { TOGGLE: 'active' } },
-    active: { on: { TOGGLE: 'inactive' } }
-  }
-});
- 
-// Machine instance with internal state
-const toggleService = interpret(toggleMachine)
-  .onTransition(state => console.log(state.value))
-  .start();
 
 module.exports = server;
