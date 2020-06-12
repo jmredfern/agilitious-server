@@ -1,0 +1,31 @@
+{
+  "files": {
+    "main.css": "/static/css/main.e5d93194.chunk.css",
+    "main.js": "/static/js/main.eae8a411.chunk.js",
+    "main.js.map": "/static/js/main.eae8a411.chunk.js.map",
+    "runtime-main.js": "/static/js/runtime-main.40b819e4.js",
+    "runtime-main.js.map": "/static/js/runtime-main.40b819e4.js.map",
+    "static/js/2.a74ed8da.chunk.js": "/static/js/2.a74ed8da.chunk.js",
+    "static/js/2.a74ed8da.chunk.js.map": "/static/js/2.a74ed8da.chunk.js.map",
+    "index.html": "/index.html",
+    "precache-manifest.3a1a40bac69292e835af2bccd0501c86.js": "/precache-manifest.3a1a40bac69292e835af2bccd0501c86.js",
+    "service-worker.js": "/service-worker.js",
+    "static/css/main.e5d93194.chunk.css.map": "/static/css/main.e5d93194.chunk.css.map",
+    "static/js/2.a74ed8da.chunk.js.LICENSE.txt": "/static/js/2.a74ed8da.chunk.js.LICENSE.txt",
+    "static/media/index.css": "/static/media/Tradeshift-Display-Medium.683fbda8.woff2",
+    "static/media/bird-2.svg": "/static/media/bird-2.2a95e580.svg",
+    "static/media/bird.svg": "/static/media/bird.87ace9d5.svg",
+    "static/media/chicken.svg": "/static/media/chicken.c04ddbb9.svg",
+    "static/media/deer-black.svg": "/static/media/deer-black.6a6cc074.svg",
+    "static/media/fox.svg": "/static/media/fox.c66a825a.svg",
+    "static/media/hedgehog.svg": "/static/media/hedgehog.0b7b275b.svg",
+    "static/media/rabbit.svg": "/static/media/rabbit.fd0a14cc.svg",
+    "static/media/squirrel.svg": "/static/media/squirrel.57ea8deb.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.40b819e4.js",
+    "static/js/2.a74ed8da.chunk.js",
+    "static/css/main.e5d93194.chunk.css",
+    "static/js/main.eae8a411.chunk.js"
+  ]
+}
