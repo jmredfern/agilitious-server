@@ -30,7 +30,7 @@
     "prettier": "^1.19.1"
   },
   "engines": {
-    "node": "13.2.0"
+    "node": "14.4.0"
   },
   "eslintConfig": {
     "env": {
