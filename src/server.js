@@ -50,7 +50,7 @@ const sendGameState = ({ activePlayerId, gameId, issues, gameOwnerId, players })
   });
 };
 
-const createGameFSM = (gameId, gameOwnerId) => {
+const createGameFSM = ({ gameId, gameOwnerId }) => {
   const gameMachine = Machine(
     {
       context: {
