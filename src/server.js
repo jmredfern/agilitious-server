@@ -13,8 +13,6 @@ const uuid = require('uuid');
 const WebSocket = require('ws');
 const { getGameFSM } = require('./services/gameFSM');
 
-let serverUrl;
-
 const app = express();
 const expressServer = createServer(app);
 
@@ -44,18 +42,12 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 const rootPath = path.resolve(path.dirname(''));
 app.use('/assets/', express.static(path.join(rootPath, 'assets')))
+app.use(express.static(path.join(__dirname, '../build')));
 
 app.engine('handlebars', exphbs());
 app.set('view engine', 'handlebars');
-app.get('/', (req, res, next) => {
-  res.render('index', {
-      helpers: {
-          clickUrl: () => `${serverUrl}/click`,
-      }
-  });
-});
 
-app.put("/games/:gameId/issues", async (req, res) => {
+app.put("/api/games/:gameId/issues", async (req, res) => {
   const { gameId } = req.params;
   const { body: issuesCSV } = req;
   log.info(`Put issues for gameId ${gameId}`);
@@ -63,18 +55,21 @@ app.put("/games/:gameId/issues", async (req, res) => {
   res.status(200).send();
 })
 
-app.get("/games/:gameId/issues", (req, res) => {
+app.get("/api/games/:gameId/issues", (req, res) => {
   const { gameId } = req.params;
   log.info(`Get issues for gameId ${gameId}`);
   const issuesCSV = getCSVIssues({ gameId });
   res.status(200).send(issuesCSV);
 })
 
+app.get('/*', (req, res, next) => {
+  res.sendFile(path.join(__dirname, '../build', 'index.html'))
+});
+  
 const service = {};
 
-service.start = ({ port, serverUrl: _serverUrl }) => {
+service.start = ({ port }) => {
   log.info('Starting server');
-  serverUrl = _serverUrl;
   expressServer.listen(port, () => {
     log.info(`Server listening on port ${port}`);
   });

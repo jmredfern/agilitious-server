@@ -12,7 +12,6 @@ const optionDefinitions = [
   { name: 'client', alias: 'c', type: Boolean },
   { name: 'port', alias: 'p', type: Number },
   { name: 'server', alias: 's', type: Boolean },
-  { name: 'serverUrl', alias: 'u', type: String },
   { name: 'websocketUrl', alias: 'w', type: String },
   { name: 'playerId', alias: 'i', type: String },
   { name: 'gameId', alias: 'g', type: String },
@@ -28,5 +27,5 @@ if (options.client) {
   }
   client.start({ gameId, playerId, websocketUrl });
 } else if (options.server) {
-  server.start({ port: process.env.PORT || port, serverUrl });
+  server.start({ port: process.env.PORT || port });
 }
