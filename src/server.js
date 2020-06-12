@@ -55,7 +55,7 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
     {
       context: {
         gameId,
-        issues: hardCodedIssues,
+        issues: hardCodedIssues.issues,
         gameOwnerId,
         players: {},
       },
