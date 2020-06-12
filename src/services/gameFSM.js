@@ -98,8 +98,8 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
       actions: {
         addPlayer: (context, event) => {
           const { players } = context;
-          const { playerId, websocket } = event;
-          const player = { playerId, websocket };
+          const { name, playerId, websocket } = event;
+          const player = { name, playerId, websocket };
           const playerIndex = getPlayerIndex({ players, playerId });
           if (playerIndex !== -1) {
             players[playerIndex] = player;

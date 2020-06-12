@@ -50,6 +50,16 @@ app.get('/', (req, res, next) => {
   });
 });
 
+app.put("/games/:gameId/issues", (req, res) => {
+  log.info("Put issues");
+  res.status(200).send();
+})
+
+app.get("/games/:gameId/issues", (req, res) => {
+  log.info("Get issues");
+  res.status(200).send();
+})
+
 const service = {};
 
 service.start = ({ port, serverUrl: _serverUrl }) => {

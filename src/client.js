@@ -18,6 +18,7 @@ const joinGame = ({ gameId, playerId, websocket }) => {
 		type: 'JOIN_GAME',
     gameId,
     id: uuid.v4(),
+    name: 'Test Name',
   };
   if (playerId) {
     event.playerId = playerId;

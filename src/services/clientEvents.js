@@ -8,10 +8,11 @@ const { getPlayerIndex, isPlayerConnected } = require('../util/player.js');
 
 const getPlayersState = players => {
   return players.map(player => {
-    const { playerId } = player;
+    const { name, playerId } = player;
     return {
-      id: playerId,
       connected: isPlayerConnected(player),
+      id: playerId,
+      name,
     };
   });
 };
