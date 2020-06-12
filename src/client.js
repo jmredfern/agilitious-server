@@ -34,8 +34,8 @@ const connect = () => {
   log.info(`Connecting to ${websocketUrl}`);
 
   const websocket = new WebSocket(websocketUrl);
-  // const gameId = uuid.v4();
-  const gameId = '5c747e2c-19dd-4674-9184-4d2cd3a773a3';
+  const gameId = uuid.v4();
+  // const gameId = '5c747e2c-19dd-4674-9184-4d2cd3a773a3';
   let connectionErrored = false;
   
   websocket.on('open', () => {

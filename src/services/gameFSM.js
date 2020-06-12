@@ -34,6 +34,11 @@ const sendGameState = ({ activePlayerId, gameId, issues, gameOwnerId, players })
   });
 };
 
+const isActivePlayer = (context, event) => {
+  const { activePlayerId } = context;
+  return activePlayerId && activePlayerId === event.playerId;
+}
+
 const createGameFSM = ({ gameId, gameOwnerId }) => {
   const gameMachine = Machine(
     {
@@ -60,7 +65,12 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
               target: 'active',
               actions: ['addPlayer'],
             },
-          }
+            UPDATE_POINTS: {
+              target: 'active',
+              actions: ['updatePoints'],
+              cond: isActivePlayer,
+            },
+          },
         },
         finish: {
           type: 'final'
@@ -69,8 +79,9 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
     },
     {
       actions: {
-        addPlayer: (context, { playerId, websocket }) => {
+        addPlayer: (context, event) => {
           const { players } = context;
+          const { playerId, websocket } = event;
           const playerOrder = Object.keys(players).length;
           players[playerId] = {
             playerId,
@@ -81,7 +92,18 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
             context.activePlayerId = playerId;
           }
           sendGameState(context);
-        }
+        },
+        updatePoints: (context, event) => {
+          const { issues } = context;
+          const { issueId, points } = event;
+          const issue = issues.find(({ id }) => id === issueId);
+          if (issue) {
+            issue.currentPoints = points;
+          } else {
+            log.warn(`Issue not found while trying to update points. [issueId:${issueId}]`);
+          }
+          sendGameState(context);
+        },
       },
       activities: {
         /* ... */
