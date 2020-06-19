@@ -1,12 +1,10 @@
 'use strict';
-const logger = require('../util/logger.js');
+import logger from '../util/logger';
+import WebSocket from 'ws';
+
 const log = logger.getLoggerByFilename({ filename: __filename });
-const WebSocket = require('ws');
-const inspect = require('util').inspect;
 
-const util = {};
-
-util.sendJSObject = (websocket, object) => {
+export const sendJSObject = (websocket: any, object: any): void => {
   if (websocket.readyState === WebSocket.OPEN) {
     try {
       log.info(`Sending object [type:${object.type}} [playerId:${object.playerId}]}`);
@@ -18,5 +16,3 @@ util.sendJSObject = (websocket, object) => {
     log.info(`Failed to send object due to websocket not open. [object: ${object}]`);
   }
 }
-
-module.exports = util;

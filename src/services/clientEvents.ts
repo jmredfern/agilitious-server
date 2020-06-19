@@ -1,13 +1,11 @@
 'use strict';
 
-const logger = require('../util/logger.js');
-const log = logger.getLoggerByFilename({ filename: __filename });
-const WebSocket = require('ws');
-const { sendJSObject } = require('../util/websocket');
-const { getPlayerIndex, isPlayerConnected } = require('../util/player.js');
+import { sendJSObject } from '../util/websocket';
+import { getPlayerIndex, isPlayerConnected } from '../util/player';
+import { Context, Issue, Player } from '../types';
 
-const getPlayersState = players => {
-  return players.map(player => {
+const getPlayersState = (players: Array<Player>): Array<{ connected: boolean, id: string, name: string }> => {
+  return players.map((player: Player): { connected: boolean, id: string, name: string } => {
     const { name, playerId } = player;
     return {
       connected: isPlayerConnected(player),
@@ -17,9 +15,7 @@ const getPlayersState = players => {
   });
 };
 
-const service = {};
-
-service.sendGameState = ({ context, eventByPlayerId }) => {
+export const sendGameState = ({ context, eventByPlayerId }: { context: Context, eventByPlayerId: string }): void => {
   const { activePlayerId, gameId, issues, gameOwnerId, phase, players } = context;
   const playerIndex = getPlayerIndex({ players, playerId: eventByPlayerId });
   const { playerId, websocket } = players[playerIndex];
@@ -36,7 +32,7 @@ service.sendGameState = ({ context, eventByPlayerId }) => {
   });
 };
 
-service.sendPlayerAdded = ({ context, eventByPlayerId }) => {
+export const sendPlayerAdded = ({ context, eventByPlayerId }: { context: Context, eventByPlayerId: string }): void => {
   const { gameId, gameOwnerId, players } = context;
   players.forEach(({ playerId, websocket }) => {
     if (playerId !== eventByPlayerId) {
@@ -52,7 +48,7 @@ service.sendPlayerAdded = ({ context, eventByPlayerId }) => {
   });
 };
 
-service.sendUpdatedPoints = ({ context, issue, eventByPlayerId }) => {
+export const sendUpdatedPoints = ({ context, issue, eventByPlayerId }: { context: Context, issue: Issue, eventByPlayerId: string }): void => {
   const { gameId, players } = context;
   players.forEach(({ playerId, websocket }) => {
     sendJSObject(websocket, {
@@ -66,7 +62,7 @@ service.sendUpdatedPoints = ({ context, issue, eventByPlayerId }) => {
   });
 };
 
-service.sendIssueOpened = ({ context, issueId, eventByPlayerId }) => {
+export const sendIssueOpened = ({ context, issueId, eventByPlayerId }: { context: Context, issueId: string, eventByPlayerId: string }): void => {
   const { gameId, players } = context;
   players.forEach(({ playerId, websocket }) => {
     sendJSObject(websocket, {
@@ -80,7 +76,7 @@ service.sendIssueOpened = ({ context, issueId, eventByPlayerId }) => {
   });
 };
 
-service.sendIssueClosed = ({ context, issueId, eventByPlayerId }) => {
+export const sendIssueClosed = ({ context, issueId, eventByPlayerId }: { context: Context, issueId: string, eventByPlayerId: string }): void => {
   const { gameId, players } = context;
   players.forEach(({ playerId, websocket }) => {
     sendJSObject(websocket, {
@@ -94,7 +90,7 @@ service.sendIssueClosed = ({ context, issueId, eventByPlayerId }) => {
   });
 };
 
-service.sendMoveConfirmed = ({ context, eventByPlayerId }) => {
+export const sendMoveConfirmed = ({ context, eventByPlayerId }: { context: Context, eventByPlayerId: string }): void => {
   const { activePlayerId, gameId, players } = context;
   players.forEach(({ playerId, websocket }) => {
     sendJSObject(websocket, {
@@ -108,7 +104,7 @@ service.sendMoveConfirmed = ({ context, eventByPlayerId }) => {
   });
 };
 
-service.sendPlayerSkipped = ({ context, eventByPlayerId }) => {
+export const sendPlayerSkipped = ({ context, eventByPlayerId }: { context: Context, eventByPlayerId: string }): void => {
   const { activePlayerId, gameId, phase, players } = context;
   players.forEach(({ playerId, websocket }) => {
     sendJSObject(websocket, {
@@ -122,5 +118,3 @@ service.sendPlayerSkipped = ({ context, eventByPlayerId }) => {
     });
   });
 };
-
-module.exports = service;

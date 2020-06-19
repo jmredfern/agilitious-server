@@ -1,44 +1,45 @@
 'use strict';
 
-const { createServer } = require('http');
-const bodyParser = require('body-parser')
-const exphbs = require('express-handlebars');
-const express = require('express');
-const inspect = require('util').inspect;
-const { storeCSVIssues, getCSVIssues } = require('./services/issueStore.js');
-const logger = require('./util/logger.js');
-const log = logger.getLoggerByFilename({ filename: __filename });
-const path = require('path');
-const uuid = require('uuid');
-const WebSocket = require('ws');
-const cors = require('cors');
-const { getGameFSM } = require('./services/gameFSM');
+import { createServer } from 'http';
+import bodyParser from 'body-parser';
+import exphbs from 'express-handlebars';
+import express from 'express';
+import { inspect } from 'util';
+import { storeCSVIssues, getCSVIssues } from './services/issueStore';
+import logger from './util/logger';
 
+import path from 'path';
+import * as uuid from 'uuid';
+import WebSocket from 'ws';
+import cors from 'cors';
+import { getGameFSM } from './services/gameFSM';
+
+const log = logger.getLoggerByFilename({ filename: __filename });
 const app = express();
 const expressServer = createServer(app);
 
 const wss = new WebSocket.Server({ server: expressServer });
 
-const processPlayerEvent = ({ event, websocket }) => {
+const processPlayerEvent = ({ event, websocket }: { event: any, websocket: any }): void => {
   const { gameId, playerId = uuid.v4() } = event;
   const gameFSM = getGameFSM({ gameId, playerId });
   gameFSM.send({ ...event, playerId, websocket });
 };
 
-wss.on('connection', websocket => {
+wss.on('connection', (websocket: any): void => {
   log.info('Client connected');
-  websocket.on('message', eventJSON => {
+  websocket.on('message', (eventJSON: string): void => {
     const event = JSON.parse(eventJSON);
     log.info(`Server received: ${inspect(event)}`);
     processPlayerEvent({ event, websocket });
   });
 
-  websocket.on('close', () => {
+  websocket.on('close', (): void => {
     log.info('Client disconnected');
   });
 });
 
-app.use(bodyParser.text({ extended: true, limit: '50mb' }));
+app.use(bodyParser.text({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cors());
 
@@ -49,7 +50,7 @@ app.use(express.static(path.join(__dirname, '../build')));
 app.engine('handlebars', exphbs());
 app.set('view engine', 'handlebars');
 
-app.put("/api/games/:gameId/issues", cors(), async (req, res) => {
+app.put("/api/games/:gameId/issues", cors(), async (req: any, res: any): Promise<any> => {
   const { gameId } = req.params;
   const { body: issuesCSV } = req;
   log.info(`Put issues for gameId ${gameId}`);
@@ -57,7 +58,7 @@ app.put("/api/games/:gameId/issues", cors(), async (req, res) => {
   res.status(200).send();
 })
 
-app.get("/api/games/:gameId/issues", cors(), (req, res) => {
+app.get("/api/games/:gameId/issues", cors(), (req: any, res: any): any => {
   const { gameId } = req.params;
   log.info(`Get issues for gameId ${gameId}`);
   const issuesCSV = getCSVIssues({ gameId });
@@ -67,14 +68,10 @@ app.get("/api/games/:gameId/issues", cors(), (req, res) => {
 app.get('/*', (req, res, next) => {
   res.sendFile(path.join(__dirname, '../build', 'index.html'))
 });
-  
-const service = {};
 
-service.start = ({ port }) => {
+export const start = ({ port }: { port: number }): void => {
   log.info('Starting server');
   expressServer.listen(port, () => {
     log.info(`Server listening on port ${port}`);
   });
 };
-
-module.exports = service;

@@ -1,24 +1,26 @@
 'use strict';
 
-const client = require('./client.js');
-const commandLineArgs = require('command-line-args');
-const server = require('./server.js');
-const logger = require ('./util/logger.js');
-const log = logger.getLoggerByFilename({ filename: __filename });
-const inspect = require('util').inspect;
+import { inspect } from 'util';
+import { Logger } from 'log4js';
+import * as client from './client';
+import * as server from './server';
+import commandLineArgs from 'command-line-args';
+import logger from './util/logger';
+
+const log: Logger = logger.getLoggerByFilename({ filename: __filename });
 inspect.defaultOptions = { depth: 16, compact: false, breakLength: Infinity };
 
 const optionDefinitions = [
   { name: 'client', alias: 'c', type: Boolean },
+  { name: 'gameId', alias: 'g', type: String },
+  { name: 'playerId', alias: 'i', type: String },
   { name: 'port', alias: 'p', type: Number },
   { name: 'server', alias: 's', type: Boolean },
   { name: 'websocketUrl', alias: 'w', type: String },
-  { name: 'playerId', alias: 'i', type: String },
-  { name: 'gameId', alias: 'g', type: String },
 ];
 
 const options = commandLineArgs(optionDefinitions);
-const { gameId, playerId, port, serverUrl, websocketUrl } = options;
+const { gameId, playerId, port, websocketUrl } = options;
 
 if (options.client) {
   if (!websocketUrl) {
@@ -29,3 +31,5 @@ if (options.client) {
 } else if (options.server) {
   server.start({ port: process.env.PORT || port });
 }
+
+export default {};

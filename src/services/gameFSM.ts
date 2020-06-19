@@ -1,19 +1,18 @@
 'use strict';
 
-const logger = require('../util/logger.js');
-const log = logger.getLoggerByFilename({ filename: __filename });
-const inspect = require('util').inspect;
-const { getIssues } = require('./issueStore.js');
-const { Machine, interpret } = require('xstate');
-const hardCodedIssues = require('../../data/issuesSmall.json');
-const { validateFibonacciNumber } = require('../util/points.js');
-const {
+import logger from '../util/logger';
+import { inspect } from 'util';
+import { getIssues } from './issueStore';
+import { Machine, interpret }  from 'xstate';
+import hardCodedIssues from '../../data/issuesSmall.json';
+import { validateFibonacciNumber } from '../util/points';
+import {
   getNewActivePlayerId,
   getPlayer,
   getPlayerIndex,
   isEveryoneFinished,
-} = require('../util/player.js');
-const {
+} from '../util/player';
+import {
   sendGameState,
   sendIssueClosed,
   sendIssueOpened,
@@ -21,11 +20,14 @@ const {
   sendUpdatedPoints,
   sendMoveConfirmed,
   sendPlayerSkipped,
-} = require('./clientEvents');
+} from './clientEvents';
+import { Issue } from '../types';
 
-const FSMs = {};
+const log = logger.getLoggerByFilename({ filename: __filename });
 
-const isActivePlayerGuard = (context, event) => {
+const FSMs: { [key: string]: any } = {};
+
+const isActivePlayerGuard = (context: any, event: any) => {
   const { activePlayerId } = context;
   const result = activePlayerId && activePlayerId === event.playerId;
   if (!result) {
@@ -36,7 +38,7 @@ const isActivePlayerGuard = (context, event) => {
   return result;
 }
 
-const createGameFSM = ({ gameId, gameOwnerId }) => {
+const createGameFSM = ({ gameId, gameOwnerId }: { gameId: string, gameOwnerId: string }): any => {
   const gameMachine = Machine(
     {
       context: {
@@ -97,7 +99,7 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
     },
     {
       actions: {
-        addPlayer: (context, event) => {
+        addPlayer: (context: any, event: any) => {
           const { players } = context;
           const { name, playerId, websocket } = event;
           const player = { name, playerId, websocket };
@@ -113,14 +115,14 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
           sendGameState({ context, eventByPlayerId: playerId });
           sendPlayerAdded({ context, eventByPlayerId: playerId });
         },
-        updatePoints: (context, event) => {
+        updatePoints: (context: any, event: any) => {
           const { issues } = context;
           const { issueId, playerId, points } = event;
           if (!validateFibonacciNumber(points)) {
             log.warn(`Tried to update story points with non fibonacci number!! [event:${inspect(event)}]`);
             return;
           }
-          const issue = issues.find(({ id }) => id === issueId);
+          const issue = issues.find(({ id }: Issue): boolean => id === issueId);
           if (issue) {
             issue.currentPoints = points;
           } else {
@@ -129,15 +131,15 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
           }
           sendUpdatedPoints({ context, issue, eventByPlayerId: playerId });
         },
-        openIssue: (context, event) => {
+        openIssue: (context: any, event: any) => {
           const { issueId, playerId } = event;
           sendIssueOpened({ context, issueId, eventByPlayerId: playerId });
         },
-        closeIssue: (context, event) => {
+        closeIssue: (context: any, event: any) => {
           const { issueId, playerId } = event;
           sendIssueClosed({ context, issueId, eventByPlayerId: playerId });
         },
-        confirmMove: (context, event) => {
+        confirmMove: (context: any, event: any) => {
           const { players } = context;
           const { playerId } = event;
           const player = getPlayer({ players, playerId });
@@ -145,7 +147,7 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
           context.activePlayerId = getNewActivePlayerId(context);
           sendMoveConfirmed({ context, eventByPlayerId: playerId });
         },
-        noChange: (context, event) => {
+        noChange: (context: any, event: any) => {
           const { players } = context;
           const { playerId } = event;
           const player = getPlayer({ players, playerId });
@@ -175,9 +177,7 @@ const createGameFSM = ({ gameId, gameOwnerId }) => {
   return gameService;
 }
 
-const service = {};
-
-service.getGameFSM = ({ gameId, playerId }) => {
+export const getGameFSM = ({ gameId, playerId }: { gameId: string, playerId: string }): any  => {
   if (!FSMs[gameId]) {
     const gameFSM = createGameFSM({
       gameId,
@@ -188,5 +188,3 @@ service.getGameFSM = ({ gameId, playerId }) => {
   
   return FSMs[gameId];
 }
-
-module.exports = service;

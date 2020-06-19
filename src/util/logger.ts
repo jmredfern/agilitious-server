@@ -1,26 +1,24 @@
 'use strict';
 
-const log4js = require('log4js');
+import log4js from 'log4js';
 
 log4js.configure({
   appenders: { out: { type: 'stdout', layout: { type: 'basic' } } },
   categories: { default: { appenders: ['out'], level: 'info' } }
 });
 
-const logger = {};
-
-const getFilename = ({ url }) => {
+const getFilename = ({ url }: { url: string }): string => {
   const pathname = new URL(url).pathname;
   return pathname.substring(pathname.lastIndexOf('/') + 1);
 };
 
-logger.getLoggerByUrl = ({ url }) => {
+const getLoggerByUrl = ({ url }: { url: string }): log4js.Logger => {
   const filename = getFilename({ url });
   return log4js.getLogger(filename);
 };
 
-logger.getLoggerByFilename = ({ filename }) => {
+const getLoggerByFilename = ({ filename }: { filename: string }): log4js.Logger => {
   return log4js.getLogger(filename);
 };
 
-module.exports = logger;
+export default { getLoggerByUrl, getLoggerByFilename };
