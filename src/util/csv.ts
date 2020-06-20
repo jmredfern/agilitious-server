@@ -1,11 +1,10 @@
 'use strict';
 
-const csv = require('csvtojson/v2');
-const uuid = require('uuid');
+import csv from 'csvtojson/v2';
+import * as uuid from 'uuid';
+import { Issue } from '../types';
 
-const util = {};
-
-const mapFields = (json) => ({
+const mapFields: (json: { [key: string]: any }) => Issue = (json) => ({
 	id: uuid.v4(),
 	acceptanceCriteria: json['Custom field (Acceptance Criteria)'],
 	created: new Date(json.Created).getTime(),
@@ -21,7 +20,7 @@ const mapFields = (json) => ({
 	type: json['Issue Type'],
 });
 
-const assignEpicId = (issue, issues) => {
+const assignEpicId = (issue: Issue, issues: Array<Issue>): Issue => {
 	if (!issue.epicKey) {
 		return issue;
 	}
@@ -35,10 +34,8 @@ const assignEpicId = (issue, issues) => {
 	};
 };
 
-util.getIssuesFromCSV = async ({ issuesCSV }) => {
+export const getIssuesFromCSV = async ({ issuesCSV }: { issuesCSV: string }): Promise<Array<Issue>> => {
 	const readIssues = await csv().fromString(issuesCSV);
 	const issues = readIssues.map(mapFields);
-	return issues.map((issue) => assignEpicId(issue, issues));
+	return issues.map((issue: Issue) => assignEpicId(issue, issues));
 };
-
-module.exports = util;
