@@ -7,23 +7,24 @@ import express from 'express';
 import { inspect } from 'util';
 import { storeCSVIssues, getCSVIssues } from './services/issueStore';
 import logger from './util/logger';
+import { Logger } from 'log4js';
 
 import path from 'path';
 import * as uuid from 'uuid';
 import WebSocket from 'ws';
 import cors from 'cors';
-import { getGameFSM } from './services/gameFSM';
+import { getFSM } from './FSM/FSM';
 
-const log = logger.getLoggerByFilename({ filename: __filename });
+const log: Logger = logger.getLoggerByFilename(__filename);
 const app = express();
 const expressServer = createServer(app);
 
 const wss = new WebSocket.Server({ server: expressServer });
 
-const processPlayerEvent = ({ event, websocket }: { event: any, websocket: any }): void => {
+const processPlayerEvent = (event: any, websocket: any): void => {
   const { gameId, playerId = uuid.v4() } = event;
-  const gameFSM = getGameFSM({ gameId, playerId });
-  gameFSM.send({ ...event, playerId, websocket });
+  const FSM = getFSM(gameId, playerId);
+  FSM.send({ ...event, playerId, websocket });
 };
 
 wss.on('connection', (websocket: any): void => {
@@ -31,7 +32,7 @@ wss.on('connection', (websocket: any): void => {
   websocket.on('message', (eventJSON: string): void => {
     const event = JSON.parse(eventJSON);
     log.info(`Server received: ${inspect(event)}`);
-    processPlayerEvent({ event, websocket });
+    processPlayerEvent(event, websocket);
   });
 
   websocket.on('close', (): void => {
@@ -50,18 +51,18 @@ app.use(express.static(path.join(__dirname, '../build')));
 app.engine('handlebars', exphbs());
 app.set('view engine', 'handlebars');
 
-app.put("/api/games/:gameId/issues", cors(), async (req: any, res: any): Promise<any> => {
+app.put('/api/games/:gameId/issues', cors(), async (req: any, res: any): Promise<any> => {
   const { gameId } = req.params;
   const { body: issuesCSV } = req;
   log.info(`Put issues for gameId ${gameId}`);
-  await storeCSVIssues({ gameId, issuesCSV });
+  await storeCSVIssues(gameId, issuesCSV);
   res.status(200).send();
 })
 
-app.get("/api/games/:gameId/issues", cors(), (req: any, res: any): any => {
+app.get('/api/games/:gameId/issues', cors(), (req: any, res: any): any => {
   const { gameId } = req.params;
   log.info(`Get issues for gameId ${gameId}`);
-  const issuesCSV = getCSVIssues({ gameId });
+  const issuesCSV = getCSVIssues(gameId);
   res.status(200).send(issuesCSV);
 })
 
@@ -69,7 +70,7 @@ app.get('/*', (req, res, next) => {
   res.sendFile(path.join(__dirname, '../build', 'index.html'))
 });
 
-export const start = ({ port }: { port: number }): void => {
+export const start = (port: number): void => {
   log.info('Starting server');
   expressServer.listen(port, () => {
     log.info(`Server listening on port ${port}`);

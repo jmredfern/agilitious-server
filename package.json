@@ -87,6 +87,5 @@
     "test": "jest",
     "compile": "tsc"
   },
-  "type": "module",
   "version": "0.0.0"
 }

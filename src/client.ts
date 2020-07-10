@@ -8,11 +8,11 @@ import { sendJSObject } from './util/websocket';
 import { getRandomPoints } from './util/points';
 import { Logger } from 'log4js';
 
-const log: Logger = logger.getLoggerByFilename({ filename: __filename });
+const log: Logger = logger.getLoggerByFilename(__filename);
 
 const ERROR_RETRY_TIMEOUT: number = 5000;
 
-const joinGame = ({ gameId, playerId, websocket }: { gameId: string, playerId: string, websocket: any }): void => {
+const joinGame = (gameId: string, playerId: string, websocket: any): void => {
   const event = {
 		type: 'JOIN_GAME',
     gameId,
@@ -23,7 +23,7 @@ const joinGame = ({ gameId, playerId, websocket }: { gameId: string, playerId: s
   sendJSObject(websocket, event);
 }
 
-const getUpdatePointsEvent = ({ gameId, playerId }: { gameId: string, playerId: string }): any => ({
+const getUpdatePointsEvent = (gameId: string, playerId: string): any => ({
   type: 'UPDATE_POINTS',
   playerId,
   points: getRandomPoints(),
@@ -32,21 +32,21 @@ const getUpdatePointsEvent = ({ gameId, playerId }: { gameId: string, playerId: 
   id: uuid.v4(),
 });
 
-const getConfirmMoveEvent = ({ gameId, playerId }: { gameId: string, playerId: string }): any => ({
+const getConfirmMoveEvent = (gameId: string, playerId: string): any => ({
   type: 'CONFIRM_MOVE',
   playerId,
   gameId,
   id: uuid.v4(),
 });
 
-const getNoChangeEvent = ({ gameId, playerId }: { gameId: string, playerId: string }): any => ({
+const getNoChangeEvent = (gameId: string, playerId: string): any => ({
   type: 'NO_CHANGE',
   playerId,
   gameId,
   id: uuid.v4(),
 });
 
-const getOpenIssueEvent = ({ gameId, playerId }: { gameId: string, playerId: string }): any => ({
+const getOpenIssueEvent = (gameId: string, playerId: string): any => ({
   type: 'OPEN_ISSUE',
   playerId,
   issueId: '8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
@@ -54,7 +54,7 @@ const getOpenIssueEvent = ({ gameId, playerId }: { gameId: string, playerId: str
   id: uuid.v4(),
 });
 
-const getCloseIssueEvent = ({ gameId, playerId }: { gameId: string, playerId: string }): any => ({
+const getCloseIssueEvent = (gameId: string, playerId: string): any => ({
   type: 'CLOSE_ISSUE',
   playerId,
   issueId: '8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
@@ -65,12 +65,12 @@ const getCloseIssueEvent = ({ gameId, playerId }: { gameId: string, playerId: st
 let nextEvents: Array<any>;
 let nextEventIndex: number = 0;
 
-const getNextEvents = ({ gameId, playerId }: { gameId: string, playerId: string }): any => ([
-  getOpenIssueEvent({ gameId, playerId }),
-  getCloseIssueEvent({ gameId, playerId }),
-  getUpdatePointsEvent({ gameId, playerId }), 
-  getConfirmMoveEvent({ gameId, playerId }),
-  getNoChangeEvent({ gameId, playerId }),  
+const getNextEvents = (gameId: string, playerId: string): any => ([
+  getOpenIssueEvent(gameId, playerId),
+  getCloseIssueEvent(gameId, playerId),
+  getUpdatePointsEvent(gameId, playerId), 
+  getConfirmMoveEvent(gameId, playerId),
+  getNoChangeEvent(gameId, playerId),  
 ]);
 
 const sendNextEvent = (websocket: any): void => {
@@ -79,7 +79,7 @@ const sendNextEvent = (websocket: any): void => {
   }
 };
 
-const connect = ({ gameId, playerId, websocketUrl }: { gameId: string, playerId: string, websocketUrl: string }): void => {
+const connect = (gameId: string, playerId: string, websocketUrl: string): void => {
   log.info(`Connecting to ${websocketUrl}`);
 
   const websocket = new WebSocket(websocketUrl);
@@ -89,8 +89,8 @@ const connect = ({ gameId, playerId, websocketUrl }: { gameId: string, playerId:
   websocket.on('open', (): void => {
     log.info('Client connected');
     connectionErrored = false;
-    nextEvents = getNextEvents({ gameId, playerId });
-    joinGame({ gameId, playerId, websocket });
+    nextEvents = getNextEvents(gameId, playerId);
+    joinGame(gameId, playerId, websocket);
   });
 
   websocket.on('message', (eventJSON: string) => {
@@ -108,7 +108,7 @@ const connect = ({ gameId, playerId, websocketUrl }: { gameId: string, playerId:
     log.info('Client disconnected');
 
     setTimeout((): void => {
-      connect({ gameId, playerId, websocketUrl });
+      connect(gameId, playerId, websocketUrl);
     }, connectionErrored ? ERROR_RETRY_TIMEOUT : 0);
   });
   websocket.on('error', (): void => {
@@ -117,7 +117,7 @@ const connect = ({ gameId, playerId, websocketUrl }: { gameId: string, playerId:
   });
 }
 
-export const start = ({ gameId = uuid.v4(), playerId = uuid.v4(), websocketUrl }: { gameId: string, playerId: string, websocketUrl: string }) => {
+export const start = (gameId: string = uuid.v4(), playerId: string = uuid.v4(), websocketUrl: string) => {
   log.info(`Starting client (websocketUrl: ${websocketUrl}, playerId: ${playerId}, gameId: ${gameId})`);
-  connect({ gameId, playerId, websocketUrl });
+  connect(gameId, playerId, websocketUrl);
 };
