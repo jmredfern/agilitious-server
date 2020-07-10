@@ -34,7 +34,7 @@ const assignEpicId = (issue: Issue, issues: Array<Issue>): Issue => {
 	};
 };
 
-export const getIssuesFromCSV = async ({ issuesCSV }: { issuesCSV: string }): Promise<Array<Issue>> => {
+export const getIssuesFromCSV = async (issuesCSV: string ): Promise<Array<Issue>> => {
 	const readIssues = await csv().fromString(issuesCSV);
 	const issues = readIssues.map(mapFields);
 	return issues.map((issue: Issue) => assignEpicId(issue, issues));

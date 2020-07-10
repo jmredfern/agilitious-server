@@ -28,6 +28,5 @@ export interface Context {
 	gameId: string,
 	issues: Array<Issue>,
 	gameOwnerId: string,
-	phase: string,
 	players: Array<Player>,
 }

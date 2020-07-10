@@ -3,14 +3,15 @@
 import logger from '../util/logger';
 import WebSocket from 'ws';
 import { Player } from '../types';
+import { Logger } from 'log4js';
 
-const log = logger.getLoggerByFilename({ filename: __filename });
+const log: Logger = logger.getLoggerByFilename(__filename);
 
-export const getPlayerIndex = ({ players, playerId }: { players: Array<Player>, playerId: string }) => {
+export const getPlayerIndex = (players: Array<Player>, playerId: string) => {
 	return players.findIndex(({ playerId: id }) => playerId === id);
 };
 
-export const getPlayer = ({ players, playerId }: { players: Array<Player>, playerId: string }): Player => {
+export const getPlayer = (players: Array<Player>, playerId: string): Player => {
   const playerIndex = players.findIndex(({ playerId: id }) => playerId === id);
   return players[playerIndex];
 };
@@ -20,8 +21,8 @@ export const isPlayerConnected = (player: Player): boolean => {
   return websocket.readyState === WebSocket.OPEN; // possible options are CONNECTING, OPEN, CLOSING or CLOSED
 };
 
-export const getNewActivePlayerId = ({ activePlayerId, newPlayerId, players }: { activePlayerId: string, newPlayerId: string, players: Array<Player> }): string => {
-  const playerIndex = getPlayerIndex({ players, playerId: newPlayerId || activePlayerId });
+export const getNewActivePlayerId = ({ activePlayerId, newPlayerId, players }: { activePlayerId: string, newPlayerId?: string, players: Array<Player> }): string => {
+  const playerIndex = getPlayerIndex(players, newPlayerId || activePlayerId);
   let newPlayer;
   if (playerIndex === players.length - 1) {
     newPlayer = players[0];
@@ -37,12 +38,4 @@ export const getNewActivePlayerId = ({ activePlayerId, newPlayerId, players }: {
   } else {
     return getNewActivePlayerId({ activePlayerId, newPlayerId: newPlayer.playerId, players });
   }
-};
-
-export const isEveryoneFinished = (players: Array<Player>): boolean => {
-  const finishedCount = players.reduce((output: number, { finished }: Player): number => {
-    output += finished ? 1 : 0;
-    return output;
-  }, 0);
-  return finishedCount === players.length;
 };

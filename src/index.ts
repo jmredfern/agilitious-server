@@ -7,7 +7,7 @@ import * as server from './server';
 import commandLineArgs from 'command-line-args';
 import logger from './util/logger';
 
-const log: Logger = logger.getLoggerByFilename({ filename: __filename });
+const log: Logger = logger.getLoggerByFilename(__filename);
 inspect.defaultOptions = { depth: 16, compact: false, breakLength: Infinity };
 
 const optionDefinitions = [
@@ -27,9 +27,9 @@ if (options.client) {
     log.info('No websocket url specified');
     process.exit(0);
   }
-  client.start({ gameId, playerId, websocketUrl });
+  client.start(gameId, playerId, websocketUrl);
 } else if (options.server) {
-  server.start({ port: process.env.PORT || port });
+  server.start(process.env.PORT || port);
 }
 
 export default {};

@@ -1,8 +1,9 @@
 'use strict';
 import logger from '../util/logger';
 import WebSocket from 'ws';
+import { Logger } from 'log4js';
 
-const log = logger.getLoggerByFilename({ filename: __filename });
+const log: Logger = logger.getLoggerByFilename(__filename);
 
 export const sendJSObject = (websocket: any, object: any): void => {
   if (websocket.readyState === WebSocket.OPEN) {

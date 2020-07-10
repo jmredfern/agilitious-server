@@ -15,9 +15,10 @@ const getPlayersState = (players: Array<Player>): Array<{ connected: boolean, id
   });
 };
 
-export const sendGameState = ({ context, eventByPlayerId }: { context: Context, eventByPlayerId: string }): void => {
-  const { activePlayerId, gameId, issues, gameOwnerId, phase, players } = context;
-  const playerIndex = getPlayerIndex({ players, playerId: eventByPlayerId });
+export const sendGameState = (state: any, eventByPlayerId: string): void => {
+  const { value: phase, context } = state;
+  const { activePlayerId, gameId, issues, gameOwnerId, players } = context;
+  const playerIndex = getPlayerIndex(players, eventByPlayerId);
   const { playerId, websocket } = players[playerIndex];
   sendJSObject(websocket, {
     type: 'GAME_STATE',
@@ -32,7 +33,7 @@ export const sendGameState = ({ context, eventByPlayerId }: { context: Context, 
   });
 };
 
-export const sendPlayerAdded = ({ context, eventByPlayerId }: { context: Context, eventByPlayerId: string }): void => {
+export const sendPlayerAdded = (context: Context, eventByPlayerId: string): void => {
   const { gameId, gameOwnerId, players } = context;
   players.forEach(({ playerId, websocket }) => {
     if (playerId !== eventByPlayerId) {
@@ -48,7 +49,7 @@ export const sendPlayerAdded = ({ context, eventByPlayerId }: { context: Context
   });
 };
 
-export const sendUpdatedPoints = ({ context, issue, eventByPlayerId }: { context: Context, issue: Issue, eventByPlayerId: string }): void => {
+export const sendUpdatedPoints = (context: Context, issue: Issue, eventByPlayerId: string): void => {
   const { gameId, players } = context;
   players.forEach(({ playerId, websocket }) => {
     sendJSObject(websocket, {
@@ -62,7 +63,7 @@ export const sendUpdatedPoints = ({ context, issue, eventByPlayerId }: { context
   });
 };
 
-export const sendIssueOpened = ({ context, issueId, eventByPlayerId }: { context: Context, issueId: string, eventByPlayerId: string }): void => {
+export const sendIssueOpened = (context: Context, issueId: string, eventByPlayerId: string): void => {
   const { gameId, players } = context;
   players.forEach(({ playerId, websocket }) => {
     sendJSObject(websocket, {
@@ -76,7 +77,7 @@ export const sendIssueOpened = ({ context, issueId, eventByPlayerId }: { context
   });
 };
 
-export const sendIssueClosed = ({ context, issueId, eventByPlayerId }: { context: Context, issueId: string, eventByPlayerId: string }): void => {
+export const sendIssueClosed = (context: Context, issueId: string, eventByPlayerId: string): void => {
   const { gameId, players } = context;
   players.forEach(({ playerId, websocket }) => {
     sendJSObject(websocket, {
@@ -90,7 +91,7 @@ export const sendIssueClosed = ({ context, issueId, eventByPlayerId }: { context
   });
 };
 
-export const sendMoveConfirmed = ({ context, eventByPlayerId }: { context: Context, eventByPlayerId: string }): void => {
+export const sendMoveConfirmed = (context: Context, eventByPlayerId: string): void => {
   const { activePlayerId, gameId, players } = context;
   players.forEach(({ playerId, websocket }) => {
     sendJSObject(websocket, {
@@ -104,8 +105,9 @@ export const sendMoveConfirmed = ({ context, eventByPlayerId }: { context: Conte
   });
 };
 
-export const sendPlayerSkipped = ({ context, eventByPlayerId }: { context: Context, eventByPlayerId: string }): void => {
-  const { activePlayerId, gameId, phase, players } = context;
+export const sendPlayerSkipped = (state: any, eventByPlayerId: string ): void => {
+  const { value: phase, context }: { value: string, context: Context } = state;
+  const { activePlayerId, gameId, players } = context;
   players.forEach(({ playerId, websocket }) => {
     sendJSObject(websocket, {
       type: 'PLAYER_SKIPPED',
