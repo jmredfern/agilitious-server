@@ -19,16 +19,16 @@ const expressServer = createServer(app);
 const wss = new WebSocket.Server({ server: expressServer });
 
 wss.on('connection', (websocket: any): void => {
-  log.info('Client connected');
-  websocket.on('message', (eventJSON: string): void => {
-    const event = JSON.parse(eventJSON);
-    log.info(`Server received: ${inspect(event)}`);
-    processPlayerEvent(event, websocket);
-  });
+	log.info('Client connected');
+	websocket.on('message', (eventJSON: string): void => {
+		const event = JSON.parse(eventJSON);
+		log.info(`Server received: ${inspect(event)}`);
+		processPlayerEvent(event, websocket);
+	});
 
-  websocket.on('close', (): void => {
-    log.info('Client disconnected');
-  });
+	websocket.on('close', (): void => {
+		log.info('Client disconnected');
+	});
 });
 
 app.use(bodyParser.text({ limit: '50mb' }));
@@ -37,12 +37,12 @@ app.use(cors());
 app.use('/api', apiRouter);
 app.use(express.static(path.join(__dirname, '../build')));
 app.get('/*', (req, res, next) => {
-  res.sendFile(path.join(__dirname, '../build', 'index.html'))
+	res.sendFile(path.join(__dirname, '../build', 'index.html'));
 });
 
 export const start = (port: number): void => {
-  log.info('Starting server');
-  expressServer.listen(port, () => {
-    log.info(`Server listening on port ${port}`);
-  });
+	log.info('Starting server');
+	expressServer.listen(port, () => {
+		log.info(`Server listening on port ${port}`);
+	});
 };
