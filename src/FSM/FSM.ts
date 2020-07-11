@@ -21,6 +21,7 @@ const createMachine = (gameId: string, gameOwnerId: string): any => {
     {
       context: {
         activePlayerId: '',
+        avatarSetId: '',
         gameId,
         issues: getIssues(gameId) || hardCodedIssues.issues,
         gameOwnerId,
@@ -82,6 +83,7 @@ const createMachine = (gameId: string, gameOwnerId: string): any => {
         },
         FINISHED: {
           type: 'final'
+          // TODO cleanup/remove data from memory after timer
         },
       },
     },

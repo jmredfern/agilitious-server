@@ -25,6 +25,7 @@ export interface Player {
 
 export interface Context {
 	activePlayerId: string,
+	avatarSetId: string,
 	gameId: string,
 	issues: Array<Issue>,
 	gameOwnerId: string,
