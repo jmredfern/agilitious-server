@@ -1,9 +1,9 @@
 {
-  "generator-node": {
-    "promptValues": {
-      "authorName": "Jim Redfern",
-      "authorEmail": "jim@tradeshift.com",
-      "authorUrl": ""
-    }
-  }
+	"generator-node": {
+		"promptValues": {
+			"authorName": "Jim Redfern",
+			"authorEmail": "jim@tradeshift.com",
+			"authorUrl": ""
+		}
+	}
 }
