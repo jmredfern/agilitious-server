@@ -9,7 +9,8 @@ import {
   isActivePlayer,
   isLastPlayer,
 } from './guards';
-import * as actions from './actions';
+import actions from './actions';
+import { v4 as uuidv4 } from 'uuid';
 
 const log: Logger = logger.getLoggerByFilename(__filename);
 
@@ -19,6 +20,7 @@ const createMachine = (gameId: string, gameOwnerId: string): any => {
   return Machine(
     {
       context: {
+        activePlayerId: '',
         gameId,
         issues: getIssues(gameId) || hardCodedIssues.issues,
         gameOwnerId,
@@ -95,7 +97,7 @@ const createService = (gameId: string, gameOwnerId: string): any => {
   return service;
 }
 
-export const getFSM = (gameId: string, playerId: string): any  => {
+const getFSM = (gameId: string, playerId: string): any  => {
   if (!FSMs[gameId]) {
     const gameOwnerId = playerId;
     const service = createService(gameId, gameOwnerId);
@@ -105,3 +107,9 @@ export const getFSM = (gameId: string, playerId: string): any  => {
   
   return FSMs[gameId];
 }
+
+export const processPlayerEvent = (event: any, websocket: any): void => {
+  const { gameId, playerId = uuidv4() } = event;
+  const FSM = getFSM(gameId, playerId);
+  FSM.send({ ...event, playerId, websocket });
+};
