@@ -2,7 +2,7 @@
 
 import WebSocket from 'ws';
 import logger from './util/logger';
-import * as uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { inspect } from 'util';
 import { sendJSObject } from './util/websocket';
 import { getRandomPoints } from './util/points';
@@ -16,7 +16,7 @@ const joinGame = (gameId: string, playerId: string, websocket: any): void => {
   const event = {
 		type: 'JOIN_GAME',
     gameId,
-    id: uuid.v4(),
+    id: uuidv4(),
     name: 'Test Name',
     playerId,
   };
@@ -29,21 +29,21 @@ const getUpdatePointsEvent = (gameId: string, playerId: string): any => ({
   points: getRandomPoints(),
   issueId: '8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
   gameId,
-  id: uuid.v4(),
+  id: uuidv4(),
 });
 
 const getConfirmMoveEvent = (gameId: string, playerId: string): any => ({
   type: 'CONFIRM_MOVE',
   playerId,
   gameId,
-  id: uuid.v4(),
+  id: uuidv4(),
 });
 
 const getNoChangeEvent = (gameId: string, playerId: string): any => ({
   type: 'NO_CHANGE',
   playerId,
   gameId,
-  id: uuid.v4(),
+  id: uuidv4(),
 });
 
 const getOpenIssueEvent = (gameId: string, playerId: string): any => ({
@@ -51,7 +51,7 @@ const getOpenIssueEvent = (gameId: string, playerId: string): any => ({
   playerId,
   issueId: '8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
   gameId,
-  id: uuid.v4(),
+  id: uuidv4(),
 });
 
 const getCloseIssueEvent = (gameId: string, playerId: string): any => ({
@@ -59,7 +59,7 @@ const getCloseIssueEvent = (gameId: string, playerId: string): any => ({
   playerId,
   issueId: '8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
   gameId,
-  id: uuid.v4(),
+  id: uuidv4(),
 });
 
 let nextEvents: Array<any>;
@@ -117,7 +117,7 @@ const connect = (gameId: string, playerId: string, websocketUrl: string): void =
   });
 }
 
-export const start = (gameId: string = uuid.v4(), playerId: string = uuid.v4(), websocketUrl: string) => {
+export const start = (gameId: string = uuidv4(), playerId: string = uuidv4(), websocketUrl: string) => {
   log.info(`Starting client (websocketUrl: ${websocketUrl}, playerId: ${playerId}, gameId: ${gameId})`);
   connect(gameId, playerId, websocketUrl);
 };

@@ -18,11 +18,15 @@ import {
 	getPlayerIndex,
 } from '../util/player';
 import { inspect } from 'util';
-import { Context, Issue } from '../types';
+import { Action, Issue } from '../types';
 
 const log: Logger = logger.getLoggerByFilename(__filename);
 
-export const addPlayer = (context: Context, event: any, { action, state }: any) => {
+const actions: {
+	[actionName: string]: Action
+} = {};
+
+actions.addPlayer = (context, event, { action, state }) => {
 	const { players } = context;
 	const { name, playerId, websocket } = event;
 	const player = { name, playerId, websocket };
@@ -39,7 +43,7 @@ export const addPlayer = (context: Context, event: any, { action, state }: any) 
 	sendPlayerAdded(context, playerId);
 };
 
-export const updatePoints = (context: Context, event: any, { action, state }: any) => {
+actions.updatePoints = (context, event, { action, state }) => {
 	const { issues } = context;
 	const { issueId, playerId, points } = event;
 	if (!validateFibonacciNumber(points)) {
@@ -56,17 +60,17 @@ export const updatePoints = (context: Context, event: any, { action, state }: an
 	sendUpdatedPoints(context, issue, playerId);
 };
 
-export const openIssue = (context: Context, event: any, { action, state }: any) => {
+actions.openIssue = (context, event, { action, state }) => {
 	const { issueId, playerId } = event;
 	sendIssueOpened(context, issueId, playerId);
 };
 
-export const closeIssue = (context: Context, event: any, { action, state }: any) => {
+actions.closeIssue = (context, event, { action, state }) => {
 	const { issueId, playerId } = event;
 	sendIssueClosed(context, issueId, playerId);
 };
 
-export const confirmMove = (context: Context, event: any, { action, state }: any) => {
+actions.confirmMove = (context, event, { action, state }) => {
 	const { activePlayerId, players } = context;
 	const { playerId } = event;
 	const player = getPlayer(players, playerId);
@@ -75,7 +79,7 @@ export const confirmMove = (context: Context, event: any, { action, state }: any
 	sendMoveConfirmed(context, playerId);
 };
 
-export const noChange = (context: Context, event: any, { action, state }: any) => {
+actions.noChange = (context, event, { action, state }) => {
 	const { activePlayerId, players } = context;
 	const { playerId } = event;
 	context.activePlayerId = getNewActivePlayerId({ activePlayerId, players }); 
@@ -83,3 +87,5 @@ export const noChange = (context: Context, event: any, { action, state }: any) =
 	player.finished = true;
 	sendPlayerSkipped(state, playerId);
 };
+
+export default actions;

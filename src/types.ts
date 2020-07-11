@@ -24,9 +24,13 @@ export interface Player {
 }
 
 export interface Context {
-	activePlayerId?: string,
+	activePlayerId: string,
 	gameId: string,
 	issues: Array<Issue>,
 	gameOwnerId: string,
 	players: Array<Player>,
+}
+
+export interface Action {
+	(context: Context, event: any, { action, state }: any): any;
 }
