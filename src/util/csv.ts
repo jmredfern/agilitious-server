@@ -4,7 +4,7 @@ import csv from 'csvtojson/v2';
 import { v4 as uuidv4 } from 'uuid';
 import { Issue } from '../types';
 
-const mapFields: (json: { [key: string]: any }) => Issue = (json) => ({
+const mapFields: (json: { [key: string]: any }) => Issue = json => ({
 	id: uuidv4(),
 	acceptanceCriteria: json['Custom field (Acceptance Criteria)'],
 	created: new Date(json.Created).getTime(),
@@ -24,7 +24,7 @@ const assignEpicId = (issue: Issue, issues: Array<Issue>): Issue => {
 	if (!issue.epicKey) {
 		return issue;
 	}
-	const epic = issues.find((i) => i.key === issue.epicKey);
+	const epic = issues.find(i => i.key === issue.epicKey);
 	if (!epic) {
 		return issue;
 	}
@@ -34,7 +34,7 @@ const assignEpicId = (issue: Issue, issues: Array<Issue>): Issue => {
 	};
 };
 
-export const getIssuesFromCSV = async (issuesCSV: string ): Promise<Array<Issue>> => {
+export const getIssuesFromCSV = async (issuesCSV: string): Promise<Array<Issue>> => {
 	const readIssues = await csv().fromString(issuesCSV);
 	const issues = readIssues.map(mapFields);
 	return issues.map((issue: Issue) => assignEpicId(issue, issues));
