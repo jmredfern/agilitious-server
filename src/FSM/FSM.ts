@@ -1,6 +1,6 @@
 'use strict';
 
-import logger from '../util/logger';
+import { getLoggerByFilename } from '../util/logger';
 import { getIssues } from '../services/issueStore';
 import { Machine, interpret } from 'xstate';
 import hardCodedIssues from '../../data/issuesSmall.json';
@@ -9,7 +9,7 @@ import { isActivePlayer, isLastPlayer } from './guards';
 import actions from './actions';
 import { v4 as uuidv4 } from 'uuid';
 
-const log: Logger = logger.getLoggerByFilename(__filename);
+const log: Logger = getLoggerByFilename(__filename);
 
 const FSMs: { [key: string]: any } = {};
 
@@ -29,9 +29,9 @@ const createMachine = (gameId: string, gameOwnerId: string): any => {
 			states: {
 				START: {
 					on: {
-						JOIN_GAME: {
+						CREATE_GAME: {
 							target: 'PLAYING',
-							actions: ['addPlayer'],
+							actions: ['createGame'],
 						},
 					},
 				},

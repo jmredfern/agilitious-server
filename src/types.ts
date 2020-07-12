@@ -35,3 +35,8 @@ export interface Context {
 export interface Action {
 	(context: Context, event: any, { action, state }: any): any;
 }
+
+export interface AvatarSet {
+	avatarSetId: string;
+	avatarIds: Array<string>;
+}

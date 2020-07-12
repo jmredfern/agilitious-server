@@ -1,11 +1,19 @@
 'use strict';
 
-import logger from '../util/logger';
+import { getLoggerByFilename } from '../util/logger';
 import WebSocket from 'ws';
 import { Player } from '../types';
+import { getNewAvatar } from '../services/avatarService';
 import { Logger } from 'log4js';
 
-const log: Logger = logger.getLoggerByFilename(__filename);
+const log: Logger = getLoggerByFilename(__filename);
+
+export const createPlayer = (context: Context, event: any) => {
+	const { avatarSetId, players } = context;
+	const { name, playerId, websocket } = event;
+	const avatarId = getNewAvatar(players, avatarSetId);
+	return { avatarId, name, playerId, websocket };
+};
 
 export const getPlayerIndex = (players: Array<Player>, playerId: string) => {
 	return players.findIndex(({ playerId: id }) => playerId === id);

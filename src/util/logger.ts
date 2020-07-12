@@ -2,6 +2,8 @@
 
 import log4js from 'log4js';
 
+const TRIM_LENGTH = 1024;
+
 log4js.configure({
 	appenders: { out: { type: 'stdout', layout: { type: 'basic' } } },
 	categories: { default: { appenders: ['out'], level: 'info' } },
@@ -12,13 +14,15 @@ const getFilename = (url: string): string => {
 	return pathname.substring(pathname.lastIndexOf('/') + 1);
 };
 
-const getLoggerByUrl = (url: string): log4js.Logger => {
+export const getLoggerByUrl = (url: string): log4js.Logger => {
 	const filename = getFilename(url);
 	return log4js.getLogger(filename);
 };
 
-const getLoggerByFilename = (filename: string): log4js.Logger => {
+export const getLoggerByFilename = (filename: string): log4js.Logger => {
 	return log4js.getLogger(filename);
 };
 
-export default { getLoggerByUrl, getLoggerByFilename };
+export const trimString = (input: string): string => {
+	return input.slice(0, TRIM_LENGTH) + '\n  ...';
+};

@@ -5,10 +5,10 @@ import { Logger } from 'log4js';
 import * as client from './client';
 import * as server from './server';
 import commandLineArgs from 'command-line-args';
-import logger from './util/logger';
+import { getLoggerByFilename } from './util/logger';
 
-const log: Logger = logger.getLoggerByFilename(__filename);
-inspect.defaultOptions = { depth: 16, compact: false, breakLength: Infinity };
+const log: Logger = getLoggerByFilename(__filename);
+inspect.defaultOptions = { depth: 16, compact: false, breakLength: Infinity, maxStringLength: 128 };
 
 const optionDefinitions = [
 	{ name: 'client', alias: 'c', type: Boolean },

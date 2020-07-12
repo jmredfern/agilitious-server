@@ -1,6 +1,6 @@
 'use strict';
 
-import logger from '../util/logger';
+import { getLoggerByFilename } from '../util/logger';
 import { Logger } from 'log4js';
 import { validateFibonacciNumber } from '../util/points';
 import {
@@ -12,25 +12,33 @@ import {
 	sendMoveConfirmed,
 	sendPlayerSkipped,
 } from '../services/clientEvents';
-import { getNewActivePlayerId, getPlayer, getPlayerIndex } from '../util/player';
+import { createPlayer, getNewActivePlayerId, getPlayer, getPlayerIndex } from '../util/player';
 import { inspect } from 'util';
 import { Action, Issue } from '../types';
 
-const log: Logger = logger.getLoggerByFilename(__filename);
+const log: Logger = getLoggerByFilename(__filename);
 
 const actions: {
 	[actionName: string]: Action;
 } = {};
 
+actions.createGame = (context, event, { action, state }) => {
+	const { players } = context;
+	const { playerId } = event;
+
+	context.activePlayerId = playerId;
+	context.avatarSetId = event.avatarSetId;
+	const player = createPlayer(context, event);
+	players.push(player);
+
+	sendGameState(state, playerId);
+};
+
 actions.addPlayer = (context, event, { action, state }) => {
 	const { players } = context;
-	const { name, playerId, websocket } = event;
-	if (players.length === 0) {
-		// TODO: probably make new event for createGame
-		context.activePlayerId = playerId;
-		context.avatarSetId = event.avatarSetId;
-	}
-	const player = { name, playerId, websocket };
+	const { playerId } = event;
+
+	const player = createPlayer(context, event);
 	const playerIndex = getPlayerIndex(players, playerId);
 	if (playerIndex !== -1) {
 		players[playerIndex] = player;

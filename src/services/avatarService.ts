@@ -3,16 +3,17 @@
 import { promisify } from 'util';
 import fs from 'fs';
 import { v5 as uuidv5 } from 'uuid';
+import { AvatarSet } from '../types';
+import { getRandomIntInclusive } from '../util/math';
+import { getLoggerByFilename } from '../util/logger';
+import { Logger } from 'log4js';
+
+const log: Logger = getLoggerByFilename(__filename);
 
 const readdir = promisify(fs.readdir);
 
 const AVATAR_DIR = 'assets/avatars';
 const UUID_V5_NAMESPACE = '7f51c45b-839c-4440-ba4c-7980943291e1';
-
-interface AvatarSet {
-	avatarSetId: string;
-	avatarIds: Array<string>;
-}
 
 const avatarIdToFilepathMap: {
 	[avatarId: string]: string;
@@ -44,10 +45,24 @@ const generateAvatarSetsCache = async () => {
 	avatarSetsCache = await generateAvatarSetsCache();
 })();
 
-export const getAvatarSets = () => {
+export const getAvatarSets = (): Array<AvatarSet> => {
 	return avatarSetsCache;
 };
 
 export const getAvatarFilepath = (avatarId: string) => {
 	return avatarIdToFilepathMap[avatarId];
+};
+
+export const getNewAvatar = (players: any, avatarSetId: string) => {
+	const avatarSets = getAvatarSets();
+	const avatarSet = avatarSets.find(set => set.avatarSetId === avatarSetId);
+	if (avatarSet === undefined) {
+		log.error('Avatar set not found!');
+		return;
+	}
+	const { avatarIds } = avatarSet;
+	const inUseAvatarIds = players.map((player: any) => player.avatarId);
+	const availableAvatarIds = avatarIds.filter((avatarId: string) => !inUseAvatarIds.includes(avatarId));
+	const avatarIdIndex = getRandomIntInclusive(0, availableAvatarIds.length - 1);
+	return availableAvatarIds[avatarIdIndex];
 };
