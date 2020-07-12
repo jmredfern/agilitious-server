@@ -1,10 +1,10 @@
 'use strict';
 
-import logger from '../util/logger';
+import { getLoggerByFilename } from '../util/logger';
 import { Player } from '../types';
 import { Logger } from 'log4js';
 
-const log: Logger = logger.getLoggerByFilename(__filename);
+const log: Logger = getLoggerByFilename(__filename);
 
 export const isActivePlayer = (context: any, event: any): boolean => {
 	const { activePlayerId } = context;

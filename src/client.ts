@@ -1,14 +1,14 @@
 'use strict';
 
 import WebSocket from 'ws';
-import logger from './util/logger';
+import { getLoggerByFilename } from './util/logger';
 import { v4 as uuidv4 } from 'uuid';
 import { inspect } from 'util';
 import { sendJSObject } from './util/websocket';
 import { getRandomPoints } from './util/points';
 import { Logger } from 'log4js';
 
-const log: Logger = logger.getLoggerByFilename(__filename);
+const log: Logger = getLoggerByFilename(__filename);
 
 const ERROR_RETRY_TIMEOUT = 5000;
 

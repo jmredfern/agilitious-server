@@ -19,17 +19,18 @@ export const sendGameState = (state: any, eventByPlayerId: string): void => {
 	const { value: phase, context } = state;
 	const { activePlayerId, gameId, issues, gameOwnerId, players } = context;
 	const playerIndex = getPlayerIndex(players, eventByPlayerId);
-	const { playerId, websocket } = players[playerIndex];
+	const { avatarId, playerId, websocket } = players[playerIndex];
 	sendJSObject(websocket, {
 		type: 'GAME_STATE',
+		avatarId,
 		activePlayerId,
 		eventByPlayerId,
 		gameId,
 		gameOwnerId,
-		issues,
 		phase,
 		playerId,
 		players: getPlayersState(players),
+		issues,
 	});
 };
 

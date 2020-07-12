@@ -4,7 +4,7 @@ import { createServer } from 'http';
 import bodyParser from 'body-parser';
 import express from 'express';
 import { inspect } from 'util';
-import logger from './util/logger';
+import { getLoggerByFilename } from './util/logger';
 import { Logger } from 'log4js';
 import path from 'path';
 import WebSocket from 'ws';
@@ -12,7 +12,7 @@ import cors from 'cors';
 import { processPlayerEvent } from './FSM/FSM';
 import { apiRouter } from './apiRouter';
 
-const log: Logger = logger.getLoggerByFilename(__filename);
+const log: Logger = getLoggerByFilename(__filename);
 const app = express();
 const expressServer = createServer(app);
 
