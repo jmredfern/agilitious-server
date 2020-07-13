@@ -2,8 +2,8 @@
 
 import { promisify } from 'util';
 import fs from 'fs';
-import { v5 as uuidv5 } from 'uuid';
-import { AvatarSet } from '../types';
+import * as uuid from 'uuid';
+import { AvatarSet, Player, UUID } from '../types';
 import { getRandomIntInclusive } from '../util/math';
 import { getLoggerByFilename } from '../util/logger';
 import { Logger } from 'log4js';
@@ -27,12 +27,12 @@ const generateAvatarSetsCache = async () => {
 		async (outputPromise: Promise<Array<AvatarSet>>, avatarSetFilename: string) => {
 			const avatarFilenames: Array<string> = await readdir(`${AVATAR_DIR}/${avatarSetFilename}/svg`);
 			const avatarIds = avatarFilenames.map(avatarFilename => {
-				const avatarId = uuidv5(avatarFilename, UUID_V5_NAMESPACE);
+				const avatarId: UUID = uuid.v5(avatarFilename, UUID_V5_NAMESPACE);
 				avatarIdToFilepathMap[avatarId] = `${AVATAR_DIR}/${avatarSetFilename}/svg/${avatarFilename}`;
 				return avatarId;
 			});
 			const output = await outputPromise;
-			const avatarSetId = uuidv5(avatarSetFilename, UUID_V5_NAMESPACE);
+			const avatarSetId = uuid.v5(avatarSetFilename, UUID_V5_NAMESPACE);
 			output.push({ avatarSetId, avatarIds });
 			return output;
 		},
@@ -49,20 +49,20 @@ export const getAvatarSets = (): Array<AvatarSet> => {
 	return avatarSetsCache;
 };
 
-export const getAvatarFilepath = (avatarId: string) => {
+export const getAvatarFilepath = (avatarId: UUID): string => {
 	return avatarIdToFilepathMap[avatarId];
 };
 
-export const getNewAvatar = (players: any, avatarSetId: string) => {
+export const getNewAvatar = (players: Array<Player>, avatarSetId: UUID): UUID => {
 	const avatarSets = getAvatarSets();
 	const avatarSet = avatarSets.find(set => set.avatarSetId === avatarSetId);
 	if (avatarSet === undefined) {
 		log.error('Avatar set not found!');
-		return;
+		return '';
 	}
 	const { avatarIds } = avatarSet;
-	const inUseAvatarIds = players.map((player: any) => player.avatarId);
-	const availableAvatarIds = avatarIds.filter((avatarId: string) => !inUseAvatarIds.includes(avatarId));
+	const inUseAvatarIds = players.map((player: Player) => player.avatarId);
+	const availableAvatarIds = avatarIds.filter((avatarId: UUID) => !inUseAvatarIds.includes(avatarId));
 	const avatarIdIndex = getRandomIntInclusive(0, availableAvatarIds.length - 1);
 	return availableAvatarIds[avatarIdIndex];
 };

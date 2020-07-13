@@ -7,13 +7,14 @@ import hardCodedIssues from '../../data/issuesSmall.json';
 import { Logger } from 'log4js';
 import { isActivePlayer, isLastPlayer } from './guards';
 import actions from './actions';
-import { v4 as uuidv4 } from 'uuid';
+import * as uuid from 'uuid';
+import { UUID, Context, ClientEvent } from '../types';
 
 const log: Logger = getLoggerByFilename(__filename);
 
 const FSMs: { [key: string]: any } = {};
 
-const createMachine = (gameId: string, gameOwnerId: string): any => {
+const createMachine = (gameId: string, gameOwnerId: UUID): any => {
 	return Machine(
 		{
 			context: {
@@ -65,14 +66,14 @@ const createMachine = (gameId: string, gameOwnerId: string): any => {
 							{
 								target: 'PLAYING',
 								actions: ['noChange'],
-								cond: (context: any, event: any) => {
+								cond: (context: Context, event: any) => {
 									return isActivePlayer(context, event) && !isLastPlayer(context, event);
 								},
 							},
 							{
 								target: 'FINISHED',
 								actions: ['noChange'],
-								cond: (context: any, event: any) => {
+								cond: (context: Context, event: any) => {
 									return isActivePlayer(context, event) && isLastPlayer(context, event);
 								},
 							},
@@ -89,13 +90,13 @@ const createMachine = (gameId: string, gameOwnerId: string): any => {
 	);
 };
 
-const createService = (gameId: string, gameOwnerId: string): any => {
+const createService = (gameId: UUID, gameOwnerId: UUID): any => {
 	const machine = createMachine(gameId, gameOwnerId);
 	const service = interpret(machine).onTransition(state => log.info(state.value));
 	return service;
 };
 
-const getFSM = (gameId: string, playerId: string): any => {
+const getFSM = (gameId: UUID, playerId: UUID): any => {
 	if (!FSMs[gameId]) {
 		const gameOwnerId = playerId;
 		const service = createService(gameId, gameOwnerId);
@@ -106,8 +107,8 @@ const getFSM = (gameId: string, playerId: string): any => {
 	return FSMs[gameId];
 };
 
-export const processPlayerEvent = (event: any, websocket: any): void => {
-	const { gameId, playerId = uuidv4() } = event;
+export const processPlayerEvent = (event: ClientEvent, websocket: any): void => {
+	const { gameId = uuid.v4(), playerId = uuid.v4() } = event;
 	const FSM = getFSM(gameId, playerId);
 	FSM.send({ ...event, playerId, websocket });
 };
