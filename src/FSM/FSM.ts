@@ -14,7 +14,7 @@ const log: Logger = getLoggerByFilename(__filename);
 
 const FSMs: { [key: string]: any } = {};
 
-const createMachine = (gameId: string, gameOwnerId: UUID): any => {
+const createMachine = (gameId: UUID, gameOwnerId: UUID): any => {
 	return Machine(
 		{
 			context: {

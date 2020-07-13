@@ -9,7 +9,7 @@ import { Logger } from 'log4js';
 import path from 'path';
 import WebSocket from 'ws';
 import cors from 'cors';
-import { processPlayerEvent as processClientEvent } from './FSM/FSM';
+import { processPlayerEvent } from './FSM/FSM';
 import { apiRouter } from './apiRouter';
 import { ClientEvent } from './types';
 
@@ -24,7 +24,7 @@ wss.on('connection', (websocket: any) => {
 	websocket.on('message', (eventJSON: string): void => {
 		const event: ClientEvent = JSON.parse(eventJSON);
 		log.info(`Server received: ${inspect(event)}`);
-		processClientEvent(event, websocket);
+		processPlayerEvent(event, websocket);
 	});
 
 	websocket.on('close', (): void => {
