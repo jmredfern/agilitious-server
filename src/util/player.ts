@@ -2,24 +2,24 @@
 
 import { getLoggerByFilename } from '../util/logger';
 import WebSocket from 'ws';
-import { Player } from '../types';
+import { Player, Context, UUID } from '../types';
 import { getNewAvatar } from '../services/avatarService';
 import { Logger } from 'log4js';
 
 const log: Logger = getLoggerByFilename(__filename);
 
-export const createPlayer = (context: Context, event: any) => {
+export const createPlayer = (context: Context, event: any): Player => {
 	const { avatarSetId, players } = context;
 	const { name, playerId, websocket } = event;
 	const avatarId = getNewAvatar(players, avatarSetId);
 	return { avatarId, name, playerId, websocket };
 };
 
-export const getPlayerIndex = (players: Array<Player>, playerId: string) => {
+export const getPlayerIndex = (players: Array<Player>, playerId: UUID): number => {
 	return players.findIndex(({ playerId: id }) => playerId === id);
 };
 
-export const getPlayer = (players: Array<Player>, playerId: string): Player => {
+export const getPlayer = (players: Array<Player>, playerId: UUID): Player => {
 	const playerIndex = players.findIndex(({ playerId: id }) => playerId === id);
 	return players[playerIndex];
 };
@@ -34,10 +34,10 @@ export const getNewActivePlayerId = ({
 	newPlayerId,
 	players,
 }: {
-	activePlayerId: string;
-	newPlayerId?: string;
+	activePlayerId: UUID;
+	newPlayerId?: UUID;
 	players: Array<Player>;
-}): string => {
+}): UUID => {
 	const playerIndex = getPlayerIndex(players, newPlayerId || activePlayerId);
 	let newPlayer;
 	if (playerIndex === players.length - 1) {

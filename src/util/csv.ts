@@ -1,11 +1,11 @@
 'use strict';
 
 import csv from 'csvtojson/v2';
-import { v4 as uuidv4 } from 'uuid';
+import * as uuid from 'uuid';
 import { Issue } from '../types';
 
 const mapFields: (json: { [key: string]: any }) => Issue = json => ({
-	id: uuidv4(),
+	id: uuid.v4(),
 	acceptanceCriteria: json['Custom field (Acceptance Criteria)'],
 	created: new Date(json.Created).getTime(),
 	currentPoints: parseInt(json['Custom field (Story Points)'], 10),

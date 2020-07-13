@@ -24,5 +24,8 @@ export const getLoggerByFilename = (filename: string): log4js.Logger => {
 };
 
 export const trimString = (input: string): string => {
+	if (input.length < TRIM_LENGTH) {
+		return input;
+	}
 	return input.slice(0, TRIM_LENGTH) + '\n  ...';
 };

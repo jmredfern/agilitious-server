@@ -9,8 +9,9 @@ import { Logger } from 'log4js';
 import path from 'path';
 import WebSocket from 'ws';
 import cors from 'cors';
-import { processPlayerEvent } from './FSM/FSM';
+import { processPlayerEvent as processClientEvent } from './FSM/FSM';
 import { apiRouter } from './apiRouter';
+import { ClientEvent } from './types';
 
 const log: Logger = getLoggerByFilename(__filename);
 const app = express();
@@ -18,12 +19,12 @@ const expressServer = createServer(app);
 
 const wss = new WebSocket.Server({ server: expressServer });
 
-wss.on('connection', (websocket: any): void => {
+wss.on('connection', (websocket: any) => {
 	log.info('Client connected');
 	websocket.on('message', (eventJSON: string): void => {
-		const event = JSON.parse(eventJSON);
+		const event: ClientEvent = JSON.parse(eventJSON);
 		log.info(`Server received: ${inspect(event)}`);
-		processPlayerEvent(event, websocket);
+		processClientEvent(event, websocket);
 	});
 
 	websocket.on('close', (): void => {
@@ -36,7 +37,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cors());
 app.use('/api', apiRouter);
 app.use(express.static(path.join(__dirname, '../build')));
-app.get('/*', (req, res, next) => {
+app.get('/*', (req, res) => {
 	res.sendFile(path.join(__dirname, '../build', 'index.html'));
 });
 

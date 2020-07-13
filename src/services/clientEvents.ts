@@ -1,123 +1,171 @@
 'use strict';
 
-import { sendJSObject } from '../util/websocket';
+import { sendServerEvent } from '../util/websocket';
 import { getPlayerIndex, isPlayerConnected } from '../util/player';
-import { Context, Issue, Player } from '../types';
+import {
+	Context,
+	Issue,
+	Player,
+	PlayerState,
+	UUID,
+	GameStateEvent,
+	PlayerAddedEvent,
+	UpdatedPointsEvent,
+	IssueOpenedEvent,
+	IssueClosedEvent,
+	MoveConfirmedEvent,
+	PlayerSkippedEvent,
+} from '../types';
+import * as uuid from 'uuid';
 
-const getPlayersState = (players: Array<Player>): Array<{ connected: boolean; id: string; name: string }> => {
-	return players.map((player: Player): { connected: boolean; id: string; name: string } => {
-		const { name, playerId } = player;
-		return {
-			connected: isPlayerConnected(player),
-			id: playerId,
-			name,
-		};
-	});
+const getPlayersState = (players: Array<Player>): Array<PlayerState> => {
+	return players.map(
+		(player: Player): PlayerState => {
+			const { name, playerId, avatarId } = player;
+			return {
+				connected: isPlayerConnected(player),
+				id: playerId,
+				name,
+				avatarId,
+			};
+		},
+	);
 };
 
-export const sendGameState = (state: any, eventByPlayerId: string): void => {
+export const sendGameState = (state: any, eventByPlayerId: UUID): void => {
 	const { value: phase, context } = state;
 	const { activePlayerId, gameId, issues, gameOwnerId, players } = context;
 	const playerIndex = getPlayerIndex(players, eventByPlayerId);
-	const { avatarId, playerId, websocket } = players[playerIndex];
-	sendJSObject(websocket, {
+	const player = players[playerIndex];
+	const event: GameStateEvent = {
 		type: 'GAME_STATE',
-		avatarId,
-		activePlayerId,
-		eventByPlayerId,
+		id: uuid.v4(),
 		gameId,
+		eventByPlayerId,
+		players: getPlayersState(players),
+		playerId: player.playerId, // Probably don't need playerId on the other server events
+		activePlayerId,
 		gameOwnerId,
 		phase,
-		playerId,
-		players: getPlayersState(players),
 		issues,
-	});
+	};
+	sendServerEvent(player, event);
 };
 
-export const sendPlayerAdded = (context: Context, eventByPlayerId: string): void => {
-	const { gameId, gameOwnerId, players } = context;
-	players.forEach(({ playerId, websocket }) => {
+export const sendPlayerAdded = (context: Context, eventByPlayerId: UUID): void => {
+	const { gameId, players } = context;
+	const event: PlayerAddedEvent = {
+		type: 'PLAYER_ADDED',
+		id: uuid.v4(),
+		gameId,
+		eventByPlayerId,
+		players: getPlayersState(players),
+	};
+	players.forEach(player => {
+		const { playerId } = player;
+
 		if (playerId !== eventByPlayerId) {
-			sendJSObject(websocket, {
-				type: 'PLAYER_ADDED',
-				eventByPlayerId,
-				gameId,
-				gameOwnerId,
-				playerId,
-				players: getPlayersState(players),
+			sendServerEvent(player, {
+				...event,
+				playerId: player.playerId,
 			});
 		}
 	});
 };
 
-export const sendUpdatedPoints = (context: Context, issue: Issue, eventByPlayerId: string): void => {
+export const sendUpdatedPoints = (context: Context, issue: Issue, eventByPlayerId: UUID): void => {
 	const { gameId, players } = context;
-	players.forEach(({ playerId, websocket }) => {
-		sendJSObject(websocket, {
-			type: 'UPDATED_POINTS',
-			eventByPlayerId,
-			gameId,
-			issue,
-			playerId,
-			players: getPlayersState(players),
+	const event: UpdatedPointsEvent = {
+		type: 'UPDATED_POINTS',
+		id: uuid.v4(),
+		gameId,
+		eventByPlayerId,
+		players: getPlayersState(players),
+
+		issue,
+	};
+	players.forEach(player => {
+		sendServerEvent(player, {
+			...event,
+			playerId: player.playerId,
 		});
 	});
 };
 
-export const sendIssueOpened = (context: Context, issueId: string, eventByPlayerId: string): void => {
+export const sendIssueOpened = (context: Context, issueId: string, eventByPlayerId: UUID): void => {
 	const { gameId, players } = context;
-	players.forEach(({ playerId, websocket }) => {
-		sendJSObject(websocket, {
-			type: 'ISSUE_OPENED',
-			eventByPlayerId,
-			gameId,
-			issueId,
-			playerId,
-			players: getPlayersState(players),
+	const event: IssueOpenedEvent = {
+		type: 'ISSUE_OPENED',
+		id: uuid.v4(),
+		gameId,
+		eventByPlayerId,
+		players: getPlayersState(players),
+
+		issueId,
+	};
+	players.forEach(player => {
+		sendServerEvent(player, {
+			...event,
+			playerId: player.playerId,
 		});
 	});
 };
 
-export const sendIssueClosed = (context: Context, issueId: string, eventByPlayerId: string): void => {
+export const sendIssueClosed = (context: Context, issueId: string, eventByPlayerId: UUID): void => {
 	const { gameId, players } = context;
-	players.forEach(({ playerId, websocket }) => {
-		sendJSObject(websocket, {
-			type: 'ISSUE_CLOSED',
-			eventByPlayerId,
-			gameId,
-			playerId,
-			players: getPlayersState(players),
-			issueId,
+	const event: IssueClosedEvent = {
+		type: 'ISSUE_CLOSED',
+		id: uuid.v4(),
+		gameId,
+		eventByPlayerId,
+		players: getPlayersState(players),
+
+		issueId,
+	};
+	players.forEach(player => {
+		sendServerEvent(player, {
+			...event,
+			playerId: player.playerId,
 		});
 	});
 };
 
-export const sendMoveConfirmed = (context: Context, eventByPlayerId: string): void => {
+export const sendMoveConfirmed = (context: Context, eventByPlayerId: UUID): void => {
 	const { activePlayerId, gameId, players } = context;
-	players.forEach(({ playerId, websocket }) => {
-		sendJSObject(websocket, {
-			type: 'MOVE_CONFIRMED',
-			activePlayerId,
-			eventByPlayerId,
-			gameId,
-			playerId,
-			players: getPlayersState(players),
+	const event: MoveConfirmedEvent = {
+		type: 'MOVE_CONFIRMED',
+		id: uuid.v4(),
+		gameId,
+		eventByPlayerId,
+		players: getPlayersState(players),
+
+		activePlayerId,
+	};
+	players.forEach(player => {
+		sendServerEvent(player, {
+			...event,
+			playerId: player.playerId,
 		});
 	});
 };
 
-export const sendPlayerSkipped = (state: any, eventByPlayerId: string): void => {
+export const sendPlayerSkipped = (state: any, eventByPlayerId: UUID): void => {
 	const { value: phase, context }: { value: string; context: Context } = state;
 	const { activePlayerId, gameId, players } = context;
-	players.forEach(({ playerId, websocket }) => {
-		sendJSObject(websocket, {
-			type: 'PLAYER_SKIPPED',
-			activePlayerId,
-			eventByPlayerId,
-			gameId,
-			phase,
-			playerId,
-			players: getPlayersState(players),
+	const event: PlayerSkippedEvent = {
+		type: 'PLAYER_SKIPPED',
+		id: uuid.v4(),
+		gameId,
+		eventByPlayerId,
+		players: getPlayersState(players),
+
+		activePlayerId,
+		phase,
+	};
+	players.forEach(player => {
+		sendServerEvent(player, {
+			...event,
+			playerId: player.playerId,
 		});
 	});
 };
