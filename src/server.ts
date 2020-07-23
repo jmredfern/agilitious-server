@@ -19,7 +19,7 @@ const expressServer = createServer(app);
 
 const wss = new WebSocket.Server({ server: expressServer });
 
-wss.on('connection', (websocket: any) => {
+wss.on('connection', (websocket: WebSocket) => {
 	log.info('Client connected');
 	websocket.on('message', (eventJSON: string): void => {
 		const event: ClientEvent = JSON.parse(eventJSON);

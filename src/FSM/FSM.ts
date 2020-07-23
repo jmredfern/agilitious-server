@@ -9,6 +9,7 @@ import { isActivePlayer, isLastPlayer } from './guards';
 import actions from './actions';
 import * as uuid from 'uuid';
 import { UUID, Context, ClientEvent } from '../types';
+import WebSocket from 'ws';
 
 const log: Logger = getLoggerByFilename(__filename);
 
@@ -107,7 +108,7 @@ const getFSM = (gameId: UUID, playerId: UUID): any => {
 	return FSMs[gameId];
 };
 
-export const processPlayerEvent = (event: ClientEvent, websocket: any): void => {
+export const processPlayerEvent = (event: ClientEvent, websocket: WebSocket): void => {
 	const { gameId = uuid.v4(), playerId = uuid.v4() } = event;
 	const FSM = getFSM(gameId, playerId);
 	FSM.send({ ...event, playerId, websocket });
