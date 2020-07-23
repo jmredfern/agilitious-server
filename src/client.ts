@@ -13,7 +13,7 @@ const log: Logger = getLoggerByFilename(__filename);
 
 const ERROR_RETRY_TIMEOUT = 5000;
 
-const joinGame = (gameId: string, playerId: string, websocket: any): void => {
+const joinGame = (gameId: string, playerId: string, websocket: WebSocket): void => {
 	const event: ClientEvent = {
 		type: 'JOIN_GAME',
 		gameId,
@@ -74,7 +74,7 @@ const getNextEvents = (gameId: string, playerId: string): Array<ClientEvent> => 
 	getNoChangeEvent(gameId, playerId),
 ];
 
-const sendNextEvent = (websocket: any): void => {
+const sendNextEvent = (websocket: WebSocket): void => {
 	if (nextEventIndex <= nextEvents.length - 1) {
 		sendClientEvent(websocket, nextEvents[nextEventIndex++]);
 	}

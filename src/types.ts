@@ -1,4 +1,5 @@
 'use strict';
+import WebSocket from 'ws';
 
 export type UUID = string;
 
@@ -22,7 +23,7 @@ export interface Player {
 	avatarId: UUID;
 	name: string;
 	playerId: UUID;
-	websocket: any;
+	websocket: WebSocket;
 	finished?: boolean;
 }
 
@@ -43,7 +44,7 @@ export interface Context {
 }
 
 export interface Action {
-	(context: Context, event: any, { action, state }: any): any;
+	(context: Context, event: any, { action, state }: any): void;
 }
 
 export interface AvatarSet {
@@ -55,10 +56,10 @@ export interface Event {
 	type: string;
 	id: UUID;
 	gameId?: UUID;
-	playerId?: UUID;
 }
 
 export interface ClientEvent extends Event {
+	playerId: UUID;
 	[key: string]: any;
 }
 
@@ -72,6 +73,7 @@ export interface GameStateEvent extends ServerEvent {
 	gameOwnerId: UUID;
 	phase: string;
 	issues: Array<Issue>;
+	playerId: UUID;
 }
 
 export type PlayerAddedEvent = ServerEvent;

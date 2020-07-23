@@ -7,7 +7,7 @@ import { inspect } from 'util';
 
 const log: Logger = getLoggerByFilename(__filename);
 
-const sendEvent = (websocket: any, event: Event): void => {
+const sendEvent = (websocket: WebSocket, event: Event): void => {
 	if (websocket.readyState === WebSocket.OPEN) {
 		try {
 			websocket.send(JSON.stringify(event));
@@ -25,7 +25,7 @@ export const sendServerEvent = <E extends Event>(player: Player, event: E): void
 	sendEvent(websocket, event);
 };
 
-export const sendClientEvent = (websocket: any, event: ClientEvent): void => {
+export const sendClientEvent = (websocket: WebSocket, event: ClientEvent): void => {
 	log.info(`Sending client event ${event.type} ${trimString(inspect(event))}`);
 	sendEvent(websocket, event);
 };

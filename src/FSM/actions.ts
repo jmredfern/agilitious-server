@@ -14,7 +14,7 @@ import {
 } from '../services/clientEvents';
 import { createPlayer, getNewActivePlayerId, getPlayer, getPlayerIndex } from '../util/player';
 import { inspect } from 'util';
-import { Action, Issue, Context } from '../types';
+import { Action, Issue, Context, ClientEvent } from '../types';
 
 const log: Logger = getLoggerByFilename(__filename);
 
@@ -22,7 +22,7 @@ const actions: {
 	[actionName: string]: Action;
 } = {};
 
-actions.createGame = (context: Context, event: any, { state }: any) => {
+actions.createGame = (context: Context, event: ClientEvent, { state }: any): void => {
 	const { players } = context;
 	const { playerId } = event;
 
@@ -34,7 +34,7 @@ actions.createGame = (context: Context, event: any, { state }: any) => {
 	sendGameState(state, playerId);
 };
 
-actions.addPlayer = (context: Context, event: any, { state }: any) => {
+actions.addPlayer = (context: Context, event: any, { state }: any): void => {
 	const { players } = context;
 	const { playerId } = event;
 
@@ -49,7 +49,7 @@ actions.addPlayer = (context: Context, event: any, { state }: any) => {
 	sendPlayerAdded(context, playerId);
 };
 
-actions.updatePoints = (context: Context, event: any) => {
+actions.updatePoints = (context: Context, event: any): void => {
 	const { issues } = context;
 	const { issueId, playerId, points } = event;
 	if (!validateFibonacciNumber(points)) {
@@ -66,17 +66,17 @@ actions.updatePoints = (context: Context, event: any) => {
 	sendUpdatedPoints(context, issue, playerId);
 };
 
-actions.openIssue = (context: Context, event: any) => {
+actions.openIssue = (context: Context, event: any): void => {
 	const { issueId, playerId } = event;
 	sendIssueOpened(context, issueId, playerId);
 };
 
-actions.closeIssue = (context: Context, event: any) => {
+actions.closeIssue = (context: Context, event: any): void => {
 	const { issueId, playerId } = event;
 	sendIssueClosed(context, issueId, playerId);
 };
 
-actions.confirmMove = (context: Context, event: any) => {
+actions.confirmMove = (context: Context, event: any): void => {
 	const { activePlayerId, players } = context;
 	const { playerId } = event;
 	const player = getPlayer(players, playerId);
@@ -85,7 +85,7 @@ actions.confirmMove = (context: Context, event: any) => {
 	sendMoveConfirmed(context, playerId);
 };
 
-actions.noChange = (context: Context, event: any, { state }: any) => {
+actions.noChange = (context: Context, event: any, { state }: any): void => {
 	const { activePlayerId, players } = context;
 	const { playerId } = event;
 	context.activePlayerId = getNewActivePlayerId({ activePlayerId, players });
