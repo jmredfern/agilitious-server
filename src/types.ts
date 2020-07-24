@@ -1,7 +1,7 @@
 'use strict';
 import WebSocket from 'ws';
 
-export type UUID = string;
+export type UUID = string & { readonly _: unique symbol }; // ensure string can't be assigned to a UUID
 
 export interface Issue {
 	id: UUID;
@@ -35,8 +35,8 @@ export interface PlayerState {
 }
 
 export interface Context {
-	activePlayerId: UUID;
-	avatarSetId: UUID;
+	activePlayerId?: UUID;
+	avatarSetId?: UUID;
 	gameId: UUID;
 	issues: Array<Issue>;
 	gameOwnerId: UUID;

@@ -1,7 +1,7 @@
 'use strict';
 
 import { getLoggerByFilename } from '../util/logger';
-import { getIssues } from '../services/issueStore';
+import { clearIssues, getIssues } from '../services/issueStore';
 import { Machine, interpret } from 'xstate';
 import hardCodedIssues from '../../data/issuesSmall.json';
 import { Logger } from 'log4js';
@@ -10,8 +10,10 @@ import actions from './actions';
 import * as uuid from 'uuid';
 import { UUID, Context, ClientEvent } from '../types';
 import WebSocket from 'ws';
+import util from 'util';
 
 const log: Logger = getLoggerByFilename(__filename);
+const setTimeoutAsync = util.promisify(setTimeout);
 
 const FSMs: { [key: string]: any } = {};
 
@@ -19,8 +21,6 @@ const createMachine = (gameId: UUID, gameOwnerId: UUID): any => {
 	return Machine(
 		{
 			context: {
-				activePlayerId: '',
-				avatarSetId: '',
 				gameId,
 				issues: getIssues(gameId) || hardCodedIssues.issues,
 				gameOwnerId,
@@ -82,13 +82,29 @@ const createMachine = (gameId: UUID, gameOwnerId: UUID): any => {
 					},
 				},
 				FINISHED: {
+					entry: ['scheduleCleanup'],
 					type: 'final',
 					// TODO cleanup/remove data from memory after timer
 				},
 			},
 		},
-		{ actions },
+		{
+			actions: {
+				...actions,
+				scheduleCleanup,
+			},
+		},
 	);
+};
+
+const scheduleCleanup = async (context: Context, event: any): Promise<void> => {
+	const cleanupDelayHours = 8;
+	const cleanupDelayMs = cleanupDelayHours * 60 * 60 * 1000;
+	await setTimeoutAsync(cleanupDelayMs);
+	const { gameId } = context;
+	clearIssues(gameId);
+	delete FSMs[gameId];
+	log.info(`Cleaning up gameId: ${gameId}`);
 };
 
 const createService = (gameId: UUID, gameOwnerId: UUID): any => {
@@ -109,7 +125,7 @@ const getFSM = (gameId: UUID, playerId: UUID): any => {
 };
 
 export const processPlayerEvent = (event: ClientEvent, websocket: WebSocket): void => {
-	const { gameId = uuid.v4(), playerId = uuid.v4() } = event;
+	const { gameId = <UUID>uuid.v4(), playerId = <UUID>uuid.v4() } = event;
 	const FSM = getFSM(gameId, playerId);
 	FSM.send({ ...event, playerId, websocket });
 };

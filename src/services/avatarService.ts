@@ -27,12 +27,12 @@ const generateAvatarSetsCache = async () => {
 		async (outputPromise: Promise<Array<AvatarSet>>, avatarSetFilename: string) => {
 			const avatarFilenames: Array<string> = await readdir(`${AVATAR_DIR}/${avatarSetFilename}/svg`);
 			const avatarIds = avatarFilenames.map(avatarFilename => {
-				const avatarId: UUID = uuid.v5(avatarFilename, UUID_V5_NAMESPACE);
+				const avatarId: UUID = <UUID>uuid.v5(avatarFilename, UUID_V5_NAMESPACE);
 				avatarIdToFilepathMap[avatarId] = `${AVATAR_DIR}/${avatarSetFilename}/svg/${avatarFilename}`;
 				return avatarId;
 			});
 			const output = await outputPromise;
-			const avatarSetId = uuid.v5(avatarSetFilename, UUID_V5_NAMESPACE);
+			const avatarSetId: UUID = <UUID>uuid.v5(avatarSetFilename, UUID_V5_NAMESPACE);
 			output.push({ avatarSetId, avatarIds });
 			return output;
 		},
@@ -53,16 +53,28 @@ export const getAvatarFilepath = (avatarId: UUID): string => {
 	return avatarIdToFilepathMap[avatarId];
 };
 
-export const getNewAvatar = (players: Array<Player>, avatarSetId: UUID): UUID => {
+export const getAvailableAvatarId = (players: Array<Player>, avatarSetId: UUID): UUID => {
 	const avatarSets = getAvatarSets();
-	const avatarSet = avatarSets.find(set => set.avatarSetId === avatarSetId);
+	let avatarSet = avatarSets.find(set => set.avatarSetId === avatarSetId);
 	if (avatarSet === undefined) {
-		log.error('Avatar set not found!');
-		return '';
+		log.warn(`Avatar set ${avatarSetId} not found, using default`);
+		avatarSet = avatarSets[0];
 	}
 	const { avatarIds } = avatarSet;
-	const inUseAvatarIds = players.map((player: Player) => player.avatarId);
+	const avatarId: UUID = getNextAvatarId(avatarIds, players);
+	log.info(`Found available avatar ${avatarId}: ${avatarIdToFilepathMap[avatarId]}`);
+	return avatarId;
+};
+
+const getNextAvatarId = (avatarIds: Array<UUID>, players: Array<Player>) => {
+	const inUseAvatarIds: Array<UUID> = players.map((player: Player) => player.avatarId);
 	const availableAvatarIds = avatarIds.filter((avatarId: UUID) => !inUseAvatarIds.includes(avatarId));
-	const avatarIdIndex = getRandomIntInclusive(0, availableAvatarIds.length - 1);
-	return availableAvatarIds[avatarIdIndex];
+	if (inUseAvatarIds.length < avatarIds.length) {
+		const index = getRandomIntInclusive(0, availableAvatarIds.length - 1);
+		return availableAvatarIds[index];
+	} else {
+		log.info(`All avatars have been assigned to players, recycling avatars.`);
+		const index = players.length % avatarIds.length;
+		return avatarIds[index];
+	}
 };

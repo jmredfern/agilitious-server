@@ -6,7 +6,7 @@ const TRIM_LENGTH = 1024;
 
 log4js.configure({
 	appenders: { out: { type: 'stdout', layout: { type: 'basic' } } },
-	categories: { default: { appenders: ['out'], level: 'info' } },
+	categories: { default: { appenders: ['out'], level: 'debug' } },
 });
 
 const getFilename = (url: string): string => {
