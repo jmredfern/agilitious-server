@@ -62,7 +62,7 @@ export const getAvailableAvatarId = (players: Array<Player>, avatarSetId: UUID):
 	}
 	const { avatarIds } = avatarSet;
 	const avatarId: UUID = getNextAvatarId(avatarIds, players);
-	log.info(`Found available avatar ${avatarId}: ${avatarIdToFilepathMap[avatarId]}`);
+	log.debug(`Found available avatar id: ${avatarId}, path: ${avatarIdToFilepathMap[avatarId]}`);
 	return avatarId;
 };
 
