@@ -66,7 +66,7 @@ export const getAvailableAvatarId = (players: Array<Player>, avatarSetId: UUID):
 	return avatarId;
 };
 
-const getNextAvatarId = (avatarIds: Array<UUID>, players: Array<Player>) => {
+const getNextAvatarId = (avatarIds: Array<UUID>, players: Array<Player>): UUID => {
 	const inUseAvatarIds: Array<UUID> = players.map((player: Player) => player.avatarId);
 	const availableAvatarIds = avatarIds.filter((avatarId: UUID) => !inUseAvatarIds.includes(avatarId));
 	if (inUseAvatarIds.length < avatarIds.length) {
@@ -78,3 +78,5 @@ const getNextAvatarId = (avatarIds: Array<UUID>, players: Array<Player>) => {
 		return avatarIds[index];
 	}
 };
+
+export const _getNextAvatarId = getNextAvatarId;

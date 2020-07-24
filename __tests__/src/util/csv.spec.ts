@@ -4,15 +4,16 @@ import fs from 'fs';
 import { getIssuesFromCSV } from '../../../src/util/csv';
 import { Issue } from '../../../src/types';
 
-describe('util/csv', () => {
+describe('util/csv/getIssuesFromCSV', () => {
+	let result: Array<Issue>;
 	let testIssuesCSV: string;
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		testIssuesCSV = fs.readFileSync('__tests__/data/testIssues.csv').toString();
+		result = await getIssuesFromCSV(testIssuesCSV);
 	});
-	test('getIssuesFromCSV', async () => {
-		const issues: Array<Issue> = await getIssuesFromCSV(testIssuesCSV);
-		expect(issues).toEqual(
+	it('should convert CSV to JS Object and return', () => {
+		expect(result).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({
 					acceptanceCriteria: '',
