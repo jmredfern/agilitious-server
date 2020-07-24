@@ -13,60 +13,60 @@ const log: Logger = getLoggerByFilename(__filename);
 
 const ERROR_RETRY_TIMEOUT = 5000;
 
-const joinGame = (gameId: string, playerId: string, websocket: WebSocket): void => {
+const joinGame = (gameId: UUID, playerId: UUID, websocket: WebSocket): void => {
 	const event: ClientEvent = {
 		type: 'JOIN_GAME',
 		gameId,
-		id: uuid.v4(),
+		id: <UUID>uuid.v4(),
 		name: 'Test Name',
 		playerId,
 	};
 	sendClientEvent(websocket, event);
 };
 
-const getUpdatePointsEvent = (gameId: string, playerId: string): ClientEvent => ({
+const getUpdatePointsEvent = (gameId: UUID, playerId: UUID): ClientEvent => ({
 	type: 'UPDATE_POINTS',
 	playerId,
 	points: getRandomPoints(),
 	issueId: '8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
 	gameId,
-	id: uuid.v4(),
+	id: <UUID>uuid.v4(),
 });
 
-const getConfirmMoveEvent = (gameId: string, playerId: string): ClientEvent => ({
+const getConfirmMoveEvent = (gameId: UUID, playerId: UUID): ClientEvent => ({
 	type: 'CONFIRM_MOVE',
 	playerId,
 	gameId,
-	id: uuid.v4(),
+	id: <UUID>uuid.v4(),
 });
 
-const getNoChangeEvent = (gameId: string, playerId: string): ClientEvent => ({
+const getNoChangeEvent = (gameId: UUID, playerId: UUID): ClientEvent => ({
 	type: 'NO_CHANGE',
 	playerId,
 	gameId,
-	id: uuid.v4(),
+	id: <UUID>uuid.v4(),
 });
 
-const getOpenIssueEvent = (gameId: string, playerId: string): ClientEvent => ({
+const getOpenIssueEvent = (gameId: UUID, playerId: UUID): ClientEvent => ({
 	type: 'OPEN_ISSUE',
 	playerId,
 	issueId: '8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
 	gameId,
-	id: uuid.v4(),
+	id: <UUID>uuid.v4(),
 });
 
-const getCloseIssueEvent = (gameId: string, playerId: string): ClientEvent => ({
+const getCloseIssueEvent = (gameId: UUID, playerId: UUID): ClientEvent => ({
 	type: 'CLOSE_ISSUE',
 	playerId,
 	issueId: '8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
 	gameId,
-	id: uuid.v4(),
+	id: <UUID>uuid.v4(),
 });
 
 let nextEvents: Array<ClientEvent>;
 let nextEventIndex = 0;
 
-const getNextEvents = (gameId: string, playerId: string): Array<ClientEvent> => [
+const getNextEvents = (gameId: UUID, playerId: UUID): Array<ClientEvent> => [
 	getOpenIssueEvent(gameId, playerId),
 	getCloseIssueEvent(gameId, playerId),
 	getUpdatePointsEvent(gameId, playerId),
@@ -121,7 +121,7 @@ const connect = (gameId: UUID, playerId: UUID, websocketUrl: string): void => {
 	});
 };
 
-export const start = (gameId: UUID = uuid.v4(), playerId: UUID = uuid.v4(), websocketUrl: string): void => {
+export const start = (gameId: UUID = <UUID>uuid.v4(), playerId: UUID = <UUID>uuid.v4(), websocketUrl: string): void => {
 	log.info(`Starting client (websocketUrl: ${websocketUrl}, playerId: ${playerId}, gameId: ${gameId})`);
 	connect(gameId, playerId, websocketUrl);
 };

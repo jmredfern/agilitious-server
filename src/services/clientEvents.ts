@@ -39,7 +39,7 @@ export const sendGameState = (state: any, eventByPlayerId: UUID): void => {
 	const player = players[playerIndex];
 	const event: GameStateEvent = {
 		type: 'GAME_STATE',
-		id: uuid.v4(),
+		id: <UUID>uuid.v4(),
 		gameId,
 		eventByPlayerId,
 		players: getPlayersState(players),
@@ -56,7 +56,7 @@ export const sendPlayerAdded = (context: Context, eventByPlayerId: UUID): void =
 	const { gameId, players } = context;
 	const event: PlayerAddedEvent = {
 		type: 'PLAYER_ADDED',
-		id: uuid.v4(),
+		id: <UUID>uuid.v4(),
 		gameId,
 		eventByPlayerId,
 		players: getPlayersState(players),
@@ -77,7 +77,7 @@ export const sendUpdatedPoints = (context: Context, issue: Issue, eventByPlayerI
 	const { gameId, players } = context;
 	const event: UpdatedPointsEvent = {
 		type: 'UPDATED_POINTS',
-		id: uuid.v4(),
+		id: <UUID>uuid.v4(),
 		gameId,
 		eventByPlayerId,
 		players: getPlayersState(players),
@@ -92,11 +92,11 @@ export const sendUpdatedPoints = (context: Context, issue: Issue, eventByPlayerI
 	});
 };
 
-export const sendIssueOpened = (context: Context, issueId: string, eventByPlayerId: UUID): void => {
+export const sendIssueOpened = (context: Context, issueId: UUID, eventByPlayerId: UUID): void => {
 	const { gameId, players } = context;
 	const event: IssueOpenedEvent = {
 		type: 'ISSUE_OPENED',
-		id: uuid.v4(),
+		id: <UUID>uuid.v4(),
 		gameId,
 		eventByPlayerId,
 		players: getPlayersState(players),
@@ -111,11 +111,11 @@ export const sendIssueOpened = (context: Context, issueId: string, eventByPlayer
 	});
 };
 
-export const sendIssueClosed = (context: Context, issueId: string, eventByPlayerId: UUID): void => {
+export const sendIssueClosed = (context: Context, issueId: UUID, eventByPlayerId: UUID): void => {
 	const { gameId, players } = context;
 	const event: IssueClosedEvent = {
 		type: 'ISSUE_CLOSED',
-		id: uuid.v4(),
+		id: <UUID>uuid.v4(),
 		gameId,
 		eventByPlayerId,
 		players: getPlayersState(players),
@@ -131,10 +131,10 @@ export const sendIssueClosed = (context: Context, issueId: string, eventByPlayer
 };
 
 export const sendMoveConfirmed = (context: Context, eventByPlayerId: UUID): void => {
-	const { activePlayerId, gameId, players } = context;
+	const { activePlayerId, gameId, players } = <Required<Context>>context;
 	const event: MoveConfirmedEvent = {
 		type: 'MOVE_CONFIRMED',
-		id: uuid.v4(),
+		id: <UUID>uuid.v4(),
 		gameId,
 		eventByPlayerId,
 		players: getPlayersState(players),
@@ -151,10 +151,10 @@ export const sendMoveConfirmed = (context: Context, eventByPlayerId: UUID): void
 
 export const sendPlayerSkipped = (state: any, eventByPlayerId: UUID): void => {
 	const { value: phase, context }: { value: string; context: Context } = state;
-	const { activePlayerId, gameId, players } = context;
+	const { activePlayerId, gameId, players } = <Required<Context>>context;
 	const event: PlayerSkippedEvent = {
 		type: 'PLAYER_SKIPPED',
-		id: uuid.v4(),
+		id: <UUID>uuid.v4(),
 		gameId,
 		eventByPlayerId,
 		players: getPlayersState(players),

@@ -2,10 +2,10 @@
 
 import csv from 'csvtojson/v2';
 import * as uuid from 'uuid';
-import { Issue } from '../types';
+import { Issue, UUID } from '../types';
 
 const mapFields: (json: { [key: string]: any }) => Issue = json => ({
-	id: uuid.v4(),
+	id: <UUID>uuid.v4(),
 	acceptanceCriteria: json['Custom field (Acceptance Criteria)'],
 	created: new Date(json.Created).getTime(),
 	currentPoints: parseInt(json['Custom field (Story Points)'], 10),

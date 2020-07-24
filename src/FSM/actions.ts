@@ -36,13 +36,14 @@ actions.createGame = (context: Context, event: ClientEvent, { state }: any): voi
 
 actions.addPlayer = (context: Context, event: any, { state }: any): void => {
 	const { players } = context;
-	const { playerId } = event;
+	const { playerId, websocket } = event;
 
-	const player = createPlayer(context, event);
 	const playerIndex = getPlayerIndex(players, playerId);
 	if (playerIndex !== -1) {
-		players[playerIndex] = player;
+		log.info(`Updating player ${playerId} websocket`);
+		players[playerIndex].websocket = websocket;
 	} else {
+		const player = createPlayer(context, event);
 		players.push(player);
 	}
 	sendGameState(state, playerId);
@@ -77,7 +78,7 @@ actions.closeIssue = (context: Context, event: any): void => {
 };
 
 actions.confirmMove = (context: Context, event: any): void => {
-	const { activePlayerId, players } = context;
+	const { activePlayerId, players } = <Required<Context>>context;
 	const { playerId } = event;
 	const player = getPlayer(players, playerId);
 	player.finished = false;
@@ -86,7 +87,7 @@ actions.confirmMove = (context: Context, event: any): void => {
 };
 
 actions.noChange = (context: Context, event: any, { state }: any): void => {
-	const { activePlayerId, players } = context;
+	const { activePlayerId, players } = <Required<Context>>context;
 	const { playerId } = event;
 	context.activePlayerId = getNewActivePlayerId({ activePlayerId, players });
 	const player = getPlayer(players, playerId);

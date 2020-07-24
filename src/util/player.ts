@@ -3,7 +3,7 @@
 import { getLoggerByFilename } from '../util/logger';
 import WebSocket from 'ws';
 import { Player, Context, UUID } from '../types';
-import { getNewAvatar } from '../services/avatarService';
+import { getAvailableAvatarId } from '../services/avatarService';
 import { Logger } from 'log4js';
 
 const log: Logger = getLoggerByFilename(__filename);
@@ -11,7 +11,7 @@ const log: Logger = getLoggerByFilename(__filename);
 export const createPlayer = (context: Context, event: any): Player => {
 	const { avatarSetId, players } = context;
 	const { name, playerId, websocket } = event;
-	const avatarId = getNewAvatar(players, avatarSetId);
+	const avatarId = getAvailableAvatarId(players, <UUID>avatarSetId);
 	return { avatarId, name, playerId, websocket };
 };
 
