@@ -55,28 +55,30 @@ export interface AvatarSet {
 export interface Event {
 	type: string;
 	id: UUID;
-	gameId?: UUID;
 }
 
 export interface ClientEvent extends Event {
+	gameId: UUID;
 	playerId: UUID;
 	[key: string]: any;
 }
 
 export interface ServerEvent extends Event {
 	eventByPlayerId: UUID;
-	players: Array<PlayerState>;
 }
 
 export interface GameStateEvent extends ServerEvent {
 	activePlayerId: UUID;
 	gameOwnerId: UUID;
-	phase: string;
 	issues: Array<Issue>;
+	phase: string;
 	playerId: UUID;
+	players: Array<PlayerState>;
 }
 
-export type PlayerAddedEvent = ServerEvent;
+export interface PlayerAddedEvent extends ServerEvent {
+	players: Array<PlayerState>;
+}
 
 export interface UpdatedPointsEvent extends ServerEvent {
 	issue: Issue;
@@ -86,9 +88,7 @@ export interface IssueOpenedEvent extends ServerEvent {
 	issueId: UUID;
 }
 
-export interface IssueClosedEvent extends ServerEvent {
-	issueId: UUID;
-}
+export type IssueClosedEvent = ServerEvent;
 
 export interface MoveConfirmedEvent extends ServerEvent {
 	activePlayerId: UUID;

@@ -42,7 +42,7 @@ app.get('/*', (req, res) => {
 });
 
 export const start = (port: number): void => {
-	log.info('Starting server');
+	log.info(`Starting server, NODE_ENV=${process.env.NODE_ENV}`);
 	expressServer.listen(port, () => {
 		log.info(`Server listening on port ${port}`);
 	});
