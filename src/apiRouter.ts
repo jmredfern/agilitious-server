@@ -12,16 +12,20 @@ const log: Logger = getLoggerByFilename(__filename);
 
 export const apiRouter = Router();
 
+const corsOptions = {
+	origin: 'https://agilicio.us',
+};
+
 apiRouter.get(
 	'/avatar/sets',
-	cors(),
+	cors(corsOptions),
 	async (req: Request, res: Response): Promise<void> => {
 		const avatarSets = getAvatarSets();
 		res.status(200).send(avatarSets);
 	},
 );
 
-apiRouter.get('/avatar/:avatarId', cors(), (req: Request, res: Response): void => {
+apiRouter.get('/avatar/:avatarId', cors(corsOptions), (req: Request, res: Response): void => {
 	const { avatarId } = req.params;
 	const avatarFilepath = getAvatarFilepath(<UUID>avatarId);
 	res.status(200).sendFile(`${process.cwd()}/${avatarFilepath}`);
@@ -29,7 +33,7 @@ apiRouter.get('/avatar/:avatarId', cors(), (req: Request, res: Response): void =
 
 apiRouter.put(
 	'/games/:gameId/issues',
-	cors(),
+	cors(corsOptions),
 	async (req: Request, res: Response): Promise<void> => {
 		const { gameId } = req.params;
 		const { body: issuesCSV } = req;
