@@ -40,16 +40,16 @@ export const sendGameState = (state: any, eventByPlayerId: UUID): void => {
 	const event: GameStateEvent = {
 		type: 'GAME_STATE',
 		id: <UUID>uuid.v4(),
-		gameId,
 		eventByPlayerId,
-		players: getPlayersState(players),
-		playerId: player.playerId, // Probably don't need playerId on the other server events
+
 		activePlayerId,
 		gameOwnerId,
-		phase,
 		issues,
+		phase,
+		playerId: player.playerId, // Probably don't need playerId on the other server events
+		players: getPlayersState(players),
 	};
-	sendServerEvent(player, event);
+	sendServerEvent(player, gameId, event);
 };
 
 export const sendPlayerAdded = (context: Context, eventByPlayerId: UUID): void => {
@@ -57,18 +57,15 @@ export const sendPlayerAdded = (context: Context, eventByPlayerId: UUID): void =
 	const event: PlayerAddedEvent = {
 		type: 'PLAYER_ADDED',
 		id: <UUID>uuid.v4(),
-		gameId,
 		eventByPlayerId,
+
 		players: getPlayersState(players),
 	};
 	players.forEach(player => {
 		const { playerId } = player;
 
 		if (playerId !== eventByPlayerId) {
-			sendServerEvent(player, {
-				...event,
-				playerId: player.playerId,
-			});
+			sendServerEvent(player, gameId, event);
 		}
 	});
 };
@@ -78,17 +75,12 @@ export const sendUpdatedPoints = (context: Context, issue: Issue, eventByPlayerI
 	const event: UpdatedPointsEvent = {
 		type: 'UPDATED_POINTS',
 		id: <UUID>uuid.v4(),
-		gameId,
 		eventByPlayerId,
-		players: getPlayersState(players),
 
 		issue,
 	};
 	players.forEach(player => {
-		sendServerEvent(player, {
-			...event,
-			playerId: player.playerId,
-		});
+		sendServerEvent(player, gameId, event);
 	});
 };
 
@@ -97,17 +89,12 @@ export const sendIssueOpened = (context: Context, issueId: UUID, eventByPlayerId
 	const event: IssueOpenedEvent = {
 		type: 'ISSUE_OPENED',
 		id: <UUID>uuid.v4(),
-		gameId,
 		eventByPlayerId,
-		players: getPlayersState(players),
 
 		issueId,
 	};
 	players.forEach(player => {
-		sendServerEvent(player, {
-			...event,
-			playerId: player.playerId,
-		});
+		sendServerEvent(player, gameId, event);
 	});
 };
 
@@ -116,17 +103,10 @@ export const sendIssueClosed = (context: Context, issueId: UUID, eventByPlayerId
 	const event: IssueClosedEvent = {
 		type: 'ISSUE_CLOSED',
 		id: <UUID>uuid.v4(),
-		gameId,
 		eventByPlayerId,
-		players: getPlayersState(players),
-
-		issueId,
 	};
 	players.forEach(player => {
-		sendServerEvent(player, {
-			...event,
-			playerId: player.playerId,
-		});
+		sendServerEvent(player, gameId, event);
 	});
 };
 
@@ -135,17 +115,12 @@ export const sendMoveConfirmed = (context: Context, eventByPlayerId: UUID): void
 	const event: MoveConfirmedEvent = {
 		type: 'MOVE_CONFIRMED',
 		id: <UUID>uuid.v4(),
-		gameId,
 		eventByPlayerId,
-		players: getPlayersState(players),
 
 		activePlayerId,
 	};
 	players.forEach(player => {
-		sendServerEvent(player, {
-			...event,
-			playerId: player.playerId,
-		});
+		sendServerEvent(player, gameId, event);
 	});
 };
 
@@ -155,17 +130,12 @@ export const sendPlayerSkipped = (state: any, eventByPlayerId: UUID): void => {
 	const event: PlayerSkippedEvent = {
 		type: 'PLAYER_SKIPPED',
 		id: <UUID>uuid.v4(),
-		gameId,
 		eventByPlayerId,
-		players: getPlayersState(players),
 
 		activePlayerId,
 		phase,
 	};
 	players.forEach(player => {
-		sendServerEvent(player, {
-			...event,
-			playerId: player.playerId,
-		});
+		sendServerEvent(player, gameId, event);
 	});
 };
