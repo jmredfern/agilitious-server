@@ -52,24 +52,6 @@ export const sendGameState = (state: any, eventByPlayerId: UUID): void => {
 	sendServerEvent(player, gameId, event);
 };
 
-export const sendPlayerAdded = (context: Context, eventByPlayerId: UUID): void => {
-	const { gameId, players } = context;
-	const event: PlayerAddedEvent = {
-		type: 'PLAYER_ADDED',
-		id: <UUID>uuid.v4(),
-		eventByPlayerId,
-
-		players: getPlayersState(players),
-	};
-	players.forEach(player => {
-		const { playerId } = player;
-
-		if (playerId !== eventByPlayerId) {
-			sendServerEvent(player, gameId, event);
-		}
-	});
-};
-
 export const sendUpdatedPoints = (context: Context, issue: Issue, eventByPlayerId: UUID): void => {
 	const { gameId, players } = context;
 	const event: UpdatedPointsEvent = {
@@ -107,6 +89,24 @@ export const sendIssueClosed = (context: Context, issueId: UUID, eventByPlayerId
 	};
 	players.forEach(player => {
 		sendServerEvent(player, gameId, event);
+	});
+};
+
+export const sendPlayerAdded = (context: Context, eventByPlayerId: UUID): void => {
+	const { gameId, players } = context;
+	const event: PlayerAddedEvent = {
+		type: 'PLAYER_ADDED',
+		id: <UUID>uuid.v4(),
+		eventByPlayerId,
+
+		players: getPlayersState(players),
+	};
+	players.forEach(player => {
+		const { playerId } = player;
+
+		if (playerId !== eventByPlayerId) {
+			sendServerEvent(player, gameId, event);
+		}
 	});
 };
 

@@ -76,10 +76,6 @@ export interface GameStateEvent extends ServerEvent {
 	players: Array<PlayerState>;
 }
 
-export interface PlayerAddedEvent extends ServerEvent {
-	players: Array<PlayerState>;
-}
-
 export interface UpdatedPointsEvent extends ServerEvent {
 	issue: Issue;
 }
@@ -89,6 +85,10 @@ export interface IssueOpenedEvent extends ServerEvent {
 }
 
 export type IssueClosedEvent = ServerEvent;
+
+export interface PlayerAddedEvent extends ServerEvent {
+	players: Array<PlayerState>;
+}
 
 export interface MoveConfirmedEvent extends ServerEvent {
 	activePlayerId: UUID;
