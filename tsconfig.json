@@ -3,7 +3,7 @@
 		// basic
 		"target": "ES2020",
 		"module": "commonjs",
-		"outDir": "target/src",
+		"outDir": "target",
 		"sourceMap": true,
 		"strict": true,
 
