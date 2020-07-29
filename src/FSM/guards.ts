@@ -1,13 +1,13 @@
 'use strict';
 
 import { getLoggerByFilename } from '../util/logger';
-import { Player, PlayerStatus } from '../types';
+import { Player, PlayerStatus, Context, FSMEvent } from '../types';
 import { Logger } from 'log4js';
 import { isPlayerConnected } from '../util/player';
 
 const log: Logger = getLoggerByFilename(__filename);
 
-export const isPlayersTurn = (context: any, event: any): boolean => {
+export const isPlayersTurn = (context: Context, event: FSMEvent): boolean => {
 	const { activePlayerId } = context;
 	const result = activePlayerId && activePlayerId === event.playerId;
 	if (!result) {
@@ -19,7 +19,7 @@ export const isPlayersTurn = (context: any, event: any): boolean => {
 	return result;
 };
 
-export const areOtherPlayersDone = (context: any, event: any): boolean => {
+export const areOtherPlayersDone = (context: Context, event: FSMEvent): boolean => {
 	const { players } = context;
 	const { playerId: activePlayerId } = event;
 	return players.reduce((result: boolean, player: Player): boolean => {
@@ -34,7 +34,7 @@ export const areOtherPlayersDone = (context: any, event: any): boolean => {
 	}, true);
 };
 
-export const isOnlyConnectedPlayer = (context: any, event: any): boolean => {
+export const isOnlyConnectedPlayer = (context: Context, event: FSMEvent): boolean => {
 	const { players } = context;
 	const { playerId: playerIdToCheckFor } = event;
 	return players.reduce((result: boolean, player: Player): boolean => {

@@ -7,14 +7,24 @@ import { inspect } from 'util';
 import { sendClientEvent } from './util/websocket';
 import { getRandomPoints } from './util/points';
 import { Logger } from 'log4js';
-import { UUID, ClientEvent } from './types';
+import {
+	UUID,
+	ClientEvent,
+	UpdatePointsEvent,
+	OpenIssueEvent,
+	CloseIssueEvent,
+	NoChangeEvent,
+	ConfirmMoveEvent,
+	JoinGameEvent,
+	FSMEvent,
+} from './types';
 
 const log: Logger = getLoggerByFilename(__filename);
 
 const ERROR_RETRY_TIMEOUT = 5000;
 
 const joinGame = (gameId: UUID, playerId: UUID, websocket: WebSocket): void => {
-	const event: ClientEvent = {
+	const event: JoinGameEvent = <JoinGameEvent>{
 		type: 'JOIN_GAME',
 		gameId,
 		id: <UUID>uuid.v4(),
@@ -24,41 +34,41 @@ const joinGame = (gameId: UUID, playerId: UUID, websocket: WebSocket): void => {
 	sendClientEvent(websocket, event);
 };
 
-const getUpdatePointsEvent = (gameId: UUID, playerId: UUID): ClientEvent => ({
+const getUpdatePointsEvent = (gameId: UUID, playerId: UUID): UpdatePointsEvent => ({
 	type: 'UPDATE_POINTS',
 	playerId,
 	points: getRandomPoints(),
-	issueId: '8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
+	issueId: <UUID>'8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
 	gameId,
 	id: <UUID>uuid.v4(),
 });
 
-const getConfirmMoveEvent = (gameId: UUID, playerId: UUID): ClientEvent => ({
+const getConfirmMoveEvent = (gameId: UUID, playerId: UUID): ConfirmMoveEvent => ({
 	type: 'CONFIRM_MOVE',
 	playerId,
 	gameId,
 	id: <UUID>uuid.v4(),
 });
 
-const getNoChangeEvent = (gameId: UUID, playerId: UUID): ClientEvent => ({
+const getNoChangeEvent = (gameId: UUID, playerId: UUID): NoChangeEvent => ({
 	type: 'NO_CHANGE',
 	playerId,
 	gameId,
 	id: <UUID>uuid.v4(),
 });
 
-const getOpenIssueEvent = (gameId: UUID, playerId: UUID): ClientEvent => ({
+const getOpenIssueEvent = (gameId: UUID, playerId: UUID): OpenIssueEvent => ({
 	type: 'OPEN_ISSUE',
 	playerId,
-	issueId: '8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
+	issueId: <UUID>'8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
 	gameId,
 	id: <UUID>uuid.v4(),
 });
 
-const getCloseIssueEvent = (gameId: UUID, playerId: UUID): ClientEvent => ({
+const getCloseIssueEvent = (gameId: UUID, playerId: UUID): CloseIssueEvent => ({
 	type: 'CLOSE_ISSUE',
 	playerId,
-	issueId: '8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
+	issueId: <UUID>'8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
 	gameId,
 	id: <UUID>uuid.v4(),
 });
@@ -66,7 +76,7 @@ const getCloseIssueEvent = (gameId: UUID, playerId: UUID): ClientEvent => ({
 let nextEvents: Array<ClientEvent>;
 let nextEventIndex = 0;
 
-const getNextEvents = (gameId: UUID, playerId: UUID): Array<ClientEvent> => [
+const getNextEvents = (gameId: UUID, playerId: UUID): Array<FSMEvent> => [
 	getOpenIssueEvent(gameId, playerId),
 	getCloseIssueEvent(gameId, playerId),
 	getUpdatePointsEvent(gameId, playerId),
