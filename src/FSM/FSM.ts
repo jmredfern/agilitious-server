@@ -5,7 +5,7 @@ import { clearIssues, getIssues } from '../services/issueStore';
 import { Machine, interpret } from 'xstate';
 import hardCodedIssues from '../../data/issuesSmall.json';
 import { Logger } from 'log4js';
-import { isActivePlayer, isLastPlayer } from './guards';
+import { isPlayersTurn, areOtherPlayersDone } from './guards';
 import actions from './actions';
 import * as uuid from 'uuid';
 import { UUID, Context, ClientEvent } from '../types';
@@ -46,36 +46,47 @@ const createMachine = (gameId: UUID, gameOwnerId: UUID): any => {
 						UPDATE_POINTS: {
 							target: 'PLAYING',
 							actions: ['updatePoints'],
-							cond: isActivePlayer,
+							cond: isPlayersTurn,
 						},
 						OPEN_ISSUE: {
 							target: 'PLAYING',
 							actions: ['openIssue'],
-							cond: isActivePlayer,
+							cond: isPlayersTurn,
 						},
 						CLOSE_ISSUE: {
 							target: 'PLAYING',
 							actions: ['closeIssue'],
-							cond: isActivePlayer,
+							cond: isPlayersTurn,
 						},
-						CONFIRM_MOVE: {
-							target: 'PLAYING',
-							actions: ['confirmMove'],
-							cond: isActivePlayer,
-						},
+						CONFIRM_MOVE: [
+							{
+								target: 'PLAYING',
+								actions: ['confirmMove'],
+								cond: (context: Context, event: any) => {
+									return isPlayersTurn(context, event) && !areOtherPlayersDone(context, event);
+								},
+							},
+							{
+								target: 'FINISHED',
+								actions: ['confirmMove'],
+								cond: (context: Context, event: any) => {
+									return isPlayersTurn(context, event) && areOtherPlayersDone(context, event);
+								},
+							},
+						],
 						NO_CHANGE: [
 							{
 								target: 'PLAYING',
 								actions: ['noChange'],
 								cond: (context: Context, event: any) => {
-									return isActivePlayer(context, event) && !isLastPlayer(context, event);
+									return isPlayersTurn(context, event) && !areOtherPlayersDone(context, event);
 								},
 							},
 							{
 								target: 'FINISHED',
 								actions: ['noChange'],
 								cond: (context: Context, event: any) => {
-									return isActivePlayer(context, event) && isLastPlayer(context, event);
+									return isPlayersTurn(context, event) && areOtherPlayersDone(context, event);
 								},
 							},
 						],
@@ -84,7 +95,6 @@ const createMachine = (gameId: UUID, gameOwnerId: UUID): any => {
 				FINISHED: {
 					entry: ['scheduleCleanup'],
 					type: 'final',
-					// TODO cleanup/remove data from memory after timer
 				},
 			},
 		},

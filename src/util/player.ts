@@ -1,18 +1,15 @@
 'use strict';
 
-import { getLoggerByFilename } from '../util/logger';
 import WebSocket from 'ws';
-import { Player, Context, UUID } from '../types';
+import { Player, Context, UUID, PlayerStatus } from '../types';
 import { getAvailableAvatarId } from '../services/avatarService';
-import { Logger } from 'log4js';
-
-const log: Logger = getLoggerByFilename(__filename);
 
 export const createPlayer = (context: Context, event: any): Player => {
 	const { avatarSetId, players } = context;
 	const { name, playerId, websocket } = event;
 	const avatarId = getAvailableAvatarId(players, <UUID>avatarSetId);
-	return { avatarId, name, playerId, websocket };
+	const status = PlayerStatus.AwaitingMove;
+	return { avatarId, name, playerId, websocket, status };
 };
 
 export const getPlayerIndex = (players: Array<Player>, playerId: UUID): number => {
@@ -29,7 +26,7 @@ export const isPlayerConnected = (player: Player): boolean => {
 	return websocket.readyState === WebSocket.OPEN; // possible options are CONNECTING, OPEN, CLOSING or CLOSED
 };
 
-export const getNewActivePlayerId = ({
+export const getNextPlayerId = ({
 	activePlayerId,
 	newPlayerId,
 	players,
@@ -46,12 +43,12 @@ export const getNewActivePlayerId = ({
 		newPlayer = players[playerIndex + 1];
 	}
 	if (newPlayer.playerId === activePlayerId) {
-		log.info('No new active player found');
-		return activePlayerId;
+		// We checked all the other players and there's none available to select
+		return newPlayer.playerId;
 	}
 	if (isPlayerConnected(newPlayer)) {
 		return newPlayer.playerId;
 	} else {
-		return getNewActivePlayerId({ activePlayerId, newPlayerId: newPlayer.playerId, players });
+		return getNextPlayerId({ activePlayerId, newPlayerId: newPlayer.playerId, players });
 	}
 };

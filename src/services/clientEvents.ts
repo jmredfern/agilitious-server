@@ -44,10 +44,10 @@ export const sendGameState = (state: any, eventByPlayerId: UUID): void => {
 
 		activePlayerId,
 		gameOwnerId,
-		issues,
 		phase,
-		playerId: player.playerId, // Probably don't need playerId on the other server events
+		playerId: player.playerId,
 		players: getPlayersState(players),
+		issues, // Put this one last so that issues is the field trimmed when logging the event
 	};
 	sendServerEvent(player, gameId, event);
 };
@@ -110,7 +110,8 @@ export const sendPlayerAdded = (context: Context, eventByPlayerId: UUID): void =
 	});
 };
 
-export const sendMoveConfirmed = (context: Context, eventByPlayerId: UUID): void => {
+export const sendMoveConfirmed = (state: any, eventByPlayerId: UUID): void => {
+	const { value: phase, context }: { value: string; context: Context } = state;
 	const { activePlayerId, gameId, players } = <Required<Context>>context;
 	const event: MoveConfirmedEvent = {
 		type: 'MOVE_CONFIRMED',
@@ -118,6 +119,7 @@ export const sendMoveConfirmed = (context: Context, eventByPlayerId: UUID): void
 		eventByPlayerId,
 
 		activePlayerId,
+		phase,
 	};
 	players.forEach(player => {
 		sendServerEvent(player, gameId, event);

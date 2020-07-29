@@ -73,7 +73,7 @@ const getNextAvatarId = (avatarIds: Array<UUID>, players: Array<Player>): UUID =
 		const index = getRandomIntInclusive(0, availableAvatarIds.length - 1);
 		return availableAvatarIds[index];
 	} else {
-		log.info(`All avatars have been assigned to players, recycling avatars.`);
+		log.debug(`All avatars have been assigned to players, recycling avatars.`);
 		const index = players.length % avatarIds.length;
 		return avatarIds[index];
 	}
