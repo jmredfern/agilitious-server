@@ -5,7 +5,7 @@ import { clearIssues, getIssues } from '../services/issueStore';
 import { Machine, interpret } from 'xstate';
 import hardCodedIssues from '../../data/issuesSmall.json';
 import { Logger } from 'log4js';
-import { isPlayersTurn, areOtherPlayersDone } from './guards';
+import { isPlayersTurn, areOtherPlayersDone, isOnlyConnectedPlayer } from './guards';
 import actions from './actions';
 import * as uuid from 'uuid';
 import { UUID, Context, ClientEvent } from '../types';
@@ -63,14 +63,14 @@ const createMachine = (gameId: UUID, gameOwnerId: UUID): any => {
 								target: 'PLAYING',
 								actions: ['confirmMove'],
 								cond: (context: Context, event: any) => {
-									return isPlayersTurn(context, event) && !areOtherPlayersDone(context, event);
+									return isPlayersTurn(context, event) && !isOnlyConnectedPlayer(context, event);
 								},
 							},
 							{
 								target: 'FINISHED',
 								actions: ['confirmMove'],
 								cond: (context: Context, event: any) => {
-									return isPlayersTurn(context, event) && areOtherPlayersDone(context, event);
+									return isPlayersTurn(context, event) && isOnlyConnectedPlayer(context, event);
 								},
 							},
 						],
