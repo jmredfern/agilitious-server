@@ -33,3 +33,15 @@ export const areOtherPlayersDone = (context: any, event: any): boolean => {
 		return result;
 	}, true);
 };
+
+export const isOnlyConnectedPlayer = (context: any, event: any): boolean => {
+	const { players } = context;
+	const { playerId: playerIdToCheckFor } = event;
+	return players.reduce((result: boolean, player: Player): boolean => {
+		const { playerId } = player;
+		if (playerIdToCheckFor === playerId) {
+			return result;
+		}
+		return !isPlayerConnected(player);
+	}, true);
+};
