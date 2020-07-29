@@ -14,7 +14,20 @@ import {
 } from '../services/clientEvents';
 import { createPlayer, getNextPlayerId, getPlayer, getPlayerIndex } from '../util/player';
 import { inspect } from 'util';
-import { Action, Issue, Context, ClientEvent, PlayerStatus } from '../types';
+import {
+	Action,
+	Issue,
+	Context,
+	CreateGameEvent,
+	JoinGameEvent,
+	UpdatePointsEvent,
+	PlayerStatus,
+	OpenIssueEvent,
+	CloseIssueEvent,
+	ConfirmMoveEvent,
+	NoChangeEvent,
+	FSMEvent,
+} from '../types';
 
 const { AwaitingMove, ConfirmedChange } = PlayerStatus;
 
@@ -24,21 +37,21 @@ const actions: {
 	[actionName: string]: Action;
 } = {};
 
-actions.createGame = (context: Context, event: ClientEvent, { state }: any): void => {
+actions.createGame = (context: Context, event: FSMEvent, { state }: any): void => {
 	const { players } = context;
-	const { playerId } = event;
+	const { avatarSetId, playerId } = <CreateGameEvent>event;
 
 	context.activePlayerId = playerId;
-	context.avatarSetId = event.avatarSetId;
+	context.avatarSetId = avatarSetId;
 	const player = createPlayer(context, event);
 	players.push(player);
 
 	sendGameState(state, playerId);
 };
 
-actions.addPlayer = (context: Context, event: any, { state }: any): void => {
+actions.addPlayer = (context: Context, event: FSMEvent | JoinGameEvent, { state }: any): void => {
 	const { players } = context;
-	const { playerId, websocket } = event;
+	const { playerId, websocket } = <CreateGameEvent>event;
 
 	const playerIndex = getPlayerIndex(players, playerId);
 	if (playerIndex !== -1) {
@@ -52,9 +65,9 @@ actions.addPlayer = (context: Context, event: any, { state }: any): void => {
 	sendPlayerAdded(context, playerId);
 };
 
-actions.updatePoints = (context: Context, event: any): void => {
+actions.updatePoints = (context: Context, event: FSMEvent): void => {
 	const { issues } = context;
-	const { issueId, playerId, points } = event;
+	const { issueId, playerId, points } = <UpdatePointsEvent>event;
 	if (!validateFibonacciNumber(points)) {
 		log.warn(`Tried to update story points with non fibonacci number!! [event:${inspect(event)}]`);
 		return;
@@ -69,19 +82,19 @@ actions.updatePoints = (context: Context, event: any): void => {
 	sendUpdatedPoints(context, issue, playerId);
 };
 
-actions.openIssue = (context: Context, event: any): void => {
-	const { issueId, playerId } = event;
+actions.openIssue = (context: Context, event: FSMEvent): void => {
+	const { issueId, playerId } = <OpenIssueEvent>event;
 	sendIssueOpened(context, issueId, playerId);
 };
 
-actions.closeIssue = (context: Context, event: any): void => {
-	const { issueId, playerId } = event;
+actions.closeIssue = (context: Context, event: FSMEvent): void => {
+	const { issueId, playerId } = <CloseIssueEvent>event;
 	sendIssueClosed(context, issueId, playerId);
 };
 
-actions.confirmMove = (context: Context, event: any, { state }: any): void => {
+actions.confirmMove = (context: Context, event: FSMEvent, { state }: any): void => {
 	const { activePlayerId, players } = <Required<Context>>context;
-	const { playerId } = event;
+	const { playerId } = <ConfirmMoveEvent>event;
 	players.forEach(player => {
 		if (player.playerId === playerId) {
 			player.status = ConfirmedChange;
@@ -93,9 +106,9 @@ actions.confirmMove = (context: Context, event: any, { state }: any): void => {
 	sendMoveConfirmed(state, playerId);
 };
 
-actions.noChange = (context: Context, event: any, { state }: any): void => {
+actions.noChange = (context: Context, event: FSMEvent, { state }: any): void => {
 	const { activePlayerId, players } = <Required<Context>>context;
-	const { playerId } = event;
+	const { playerId } = <NoChangeEvent>event;
 	const player = getPlayer(players, playerId);
 	player.status = PlayerStatus.Skipped;
 	context.activePlayerId = getNextPlayerId({ activePlayerId, players });

@@ -1,5 +1,6 @@
 'use strict';
 import WebSocket from 'ws';
+import { StateSchema } from 'xstate';
 
 export type UUID = string & { readonly _: unique symbol }; // ensure string can't be assigned to a UUID
 
@@ -40,17 +41,25 @@ export interface PlayerState {
 	avatarId: UUID;
 }
 
+interface State {
+	[key: string]: StateSchema<any>;
+}
+
+export interface FSMStateSchema {
+	states: {
+		START: State;
+		PLAYING: State;
+		FINISHED: State;
+	};
+}
+
 export interface Context {
-	activePlayerId?: UUID;
-	avatarSetId?: UUID;
+	activePlayerId: UUID;
+	avatarSetId: UUID;
 	gameId: UUID;
 	issues: Array<Issue>;
 	gameOwnerId: UUID;
 	players: Array<Player>;
-}
-
-export interface Action {
-	(context: Context, event: any, { action, state }: any): void;
 }
 
 export interface AvatarSet {
@@ -66,8 +75,56 @@ export interface Event {
 export interface ClientEvent extends Event {
 	gameId: UUID;
 	playerId: UUID;
-	[key: string]: any;
 }
+
+export interface CreateGameEvent extends ClientEvent {
+	type: 'CREATE_GAME';
+	avatarSetId: UUID;
+	websocket: WebSocket;
+}
+
+export interface JoinGameEvent extends ClientEvent {
+	type: 'JOIN_GAME';
+	websocket: WebSocket;
+	name: string;
+}
+
+export interface UpdatePointsEvent extends ClientEvent {
+	type: 'UPDATE_POINTS';
+	issueId: UUID;
+	points: number;
+}
+
+export interface OpenIssueEvent extends ClientEvent {
+	type: 'OPEN_ISSUE';
+	issueId: UUID;
+}
+
+export interface CloseIssueEvent extends ClientEvent {
+	type: 'CLOSE_ISSUE';
+	issueId: UUID;
+}
+
+export interface ConfirmMoveEvent extends ClientEvent {
+	type: 'CONFIRM_MOVE';
+}
+
+export interface NoChangeEvent extends ClientEvent {
+	type: 'NO_CHANGE';
+}
+
+export interface Action {
+	(context: Context, event: FSMEvent, { action, state }: any): void;
+}
+
+export type FSMEvent =
+	| CreateGameEvent
+	| JoinGameEvent
+	| UpdatePointsEvent
+	| OpenIssueEvent
+	| CloseIssueEvent
+	| ConfirmMoveEvent
+	| NoChangeEvent;
 
 export interface ServerEvent extends Event {
 	eventByPlayerId: UUID;

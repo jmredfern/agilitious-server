@@ -2,7 +2,7 @@
 
 import { areOtherPlayersDone } from '../../../src/FSM/guards';
 import WebSocket from 'ws';
-import { Player, PlayerStatus } from '../../../src/types';
+import { Context, Player, PlayerStatus, FSMEvent } from '../../../src/types';
 import { inspect } from 'util';
 
 const { Skipped, AwaitingMove, ConfirmedChange } = PlayerStatus;
@@ -292,8 +292,8 @@ describe('FSM/guards', () => {
 			const playerSetupsString = inspect(playerSetups);
 			describe(`When it's ${activePlayerId}'s turn, using the following player setups: ${playerSetupsString}`, () => {
 				beforeEach(() => {
-					const context = { players: getPlayers(playerSetups) };
-					const event = { playerId: activePlayerId };
+					const context = <Context>{ players: getPlayers(playerSetups) };
+					const event = <FSMEvent>{ playerId: activePlayerId };
 					result = areOtherPlayersDone(context, event);
 				});
 				it(`calling areOtherPlayersDone() should return ${expectedResult}`, () => {

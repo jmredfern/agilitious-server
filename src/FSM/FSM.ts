@@ -8,7 +8,7 @@ import { Logger } from 'log4js';
 import { isPlayersTurn, areOtherPlayersDone, isOnlyConnectedPlayer } from './guards';
 import actions from './actions';
 import * as uuid from 'uuid';
-import { UUID, Context, ClientEvent } from '../types';
+import { UUID, Context, ClientEvent, Player, FSMStateSchema, FSMEvent } from '../types';
 import WebSocket from 'ws';
 import util from 'util';
 
@@ -18,13 +18,13 @@ const setTimeoutAsync = util.promisify(setTimeout);
 const FSMs: { [key: string]: any } = {};
 
 const createMachine = (gameId: UUID, gameOwnerId: UUID): any => {
-	return Machine(
+	return Machine<Context, FSMStateSchema, FSMEvent>(
 		{
-			context: {
+			context: <Context>{
 				gameId,
 				issues: getIssues(gameId) || hardCodedIssues.issues,
 				gameOwnerId,
-				players: [],
+				players: <Array<Player>>[],
 			},
 			id: 'game',
 			initial: 'START',
