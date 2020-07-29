@@ -1,13 +1,13 @@
 'use strict';
 
 import WebSocket from 'ws';
-import { Player, Context, UUID, PlayerStatus } from '../types';
+import { Player, Context, UUID, PlayerStatus, CreateGameEvent, JoinGameEvent } from '../types';
 import { getAvailableAvatarId } from '../services/avatarService';
 
-export const createPlayer = (context: Context, event: any): Player => {
+export const createPlayer = (context: Context, event: CreateGameEvent | JoinGameEvent): Player => {
 	const { avatarSetId, players } = context;
 	const { name, playerId, websocket } = event;
-	const avatarId = getAvailableAvatarId(players, <UUID>avatarSetId);
+	const avatarId = getAvailableAvatarId(players, avatarSetId);
 	const status = PlayerStatus.AwaitingMove;
 	return { avatarId, name, playerId, websocket, status };
 };

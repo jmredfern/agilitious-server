@@ -2,9 +2,9 @@
 
 import csv from 'csvtojson/v2';
 import * as uuid from 'uuid';
-import { Issue, UUID } from '../types';
+import { Issue, UUID, JSONIssue } from '../types';
 
-const mapFields: (json: { [key: string]: any }) => Issue = json => ({
+const mapFields: (json: JSONIssue) => Issue = json => ({
 	id: <UUID>uuid.v4(),
 	acceptanceCriteria: json['Custom field (Acceptance Criteria)'],
 	created: new Date(json.Created).getTime(),

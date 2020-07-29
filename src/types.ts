@@ -4,6 +4,19 @@ import { StateSchema } from 'xstate';
 
 export type UUID = string & { readonly _: unique symbol }; // ensure string can't be assigned to a UUID
 
+export interface JSONIssue {
+	'Custom field (Acceptance Criteria)': string;
+	'Custom field (Epic Link)': string;
+	'Custom field (Story Points)': string;
+	'Issue key': string;
+	'Issue Type': string;
+	Created: string;
+	Description: string;
+	Reporter: string;
+	Status: string;
+	Summary: string;
+}
+
 export interface Issue {
 	id: UUID;
 	acceptanceCriteria: string;
@@ -41,7 +54,7 @@ export interface PlayerState {
 	avatarId: UUID;
 }
 
-interface State {
+export interface State {
 	[key: string]: StateSchema<any>;
 }
 
@@ -52,6 +65,20 @@ export interface FSMStateSchema {
 		FINISHED: State;
 	};
 }
+
+export type FSMTypestate =
+	| {
+			value: 'START';
+			context: Context;
+	  }
+	| {
+			value: 'PLAYING';
+			context: Context;
+	  }
+	| {
+			value: 'FINISHED';
+			context: Context;
+	  };
 
 export interface Context {
 	activePlayerId: UUID;
@@ -81,6 +108,7 @@ export interface CreateGameEvent extends ClientEvent {
 	type: 'CREATE_GAME';
 	avatarSetId: UUID;
 	websocket: WebSocket;
+	name: string;
 }
 
 export interface JoinGameEvent extends ClientEvent {
@@ -114,7 +142,7 @@ export interface NoChangeEvent extends ClientEvent {
 }
 
 export interface Action {
-	(context: Context, event: FSMEvent, { action, state }: any): void;
+	(context: Context, event: FSMEvent, { state }: { state: FSMTypestate }): void;
 }
 
 export type FSMEvent =

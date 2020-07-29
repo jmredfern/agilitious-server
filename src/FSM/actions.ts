@@ -7,26 +7,27 @@ import {
 	sendGameState,
 	sendIssueClosed,
 	sendIssueOpened,
-	sendPlayerAdded,
-	sendUpdatedPoints,
 	sendMoveConfirmed,
+	sendPlayerAdded,
 	sendPlayerSkipped,
+	sendUpdatedPoints,
 } from '../services/clientEvents';
 import { createPlayer, getNextPlayerId, getPlayer, getPlayerIndex } from '../util/player';
 import { inspect } from 'util';
 import {
 	Action,
-	Issue,
-	Context,
-	CreateGameEvent,
-	JoinGameEvent,
-	UpdatePointsEvent,
-	PlayerStatus,
-	OpenIssueEvent,
 	CloseIssueEvent,
 	ConfirmMoveEvent,
-	NoChangeEvent,
+	Context,
+	CreateGameEvent,
 	FSMEvent,
+	FSMTypestate,
+	Issue,
+	JoinGameEvent,
+	NoChangeEvent,
+	OpenIssueEvent,
+	PlayerStatus,
+	UpdatePointsEvent,
 } from '../types';
 
 const { AwaitingMove, ConfirmedChange } = PlayerStatus;
@@ -37,28 +38,28 @@ const actions: {
 	[actionName: string]: Action;
 } = {};
 
-actions.createGame = (context: Context, event: FSMEvent, { state }: any): void => {
+actions.createGame = (context: Context, event: FSMEvent, { state }: { state: FSMTypestate }): void => {
 	const { players } = context;
 	const { avatarSetId, playerId } = <CreateGameEvent>event;
 
 	context.activePlayerId = playerId;
 	context.avatarSetId = avatarSetId;
-	const player = createPlayer(context, event);
+	const player = createPlayer(context, <CreateGameEvent>event);
 	players.push(player);
 
 	sendGameState(state, playerId);
 };
 
-actions.addPlayer = (context: Context, event: FSMEvent | JoinGameEvent, { state }: any): void => {
+actions.addPlayer = (context: Context, event: FSMEvent, { state }: { state: FSMTypestate }): void => {
 	const { players } = context;
-	const { playerId, websocket } = <CreateGameEvent>event;
+	const { playerId, websocket } = <JoinGameEvent>event;
 
 	const playerIndex = getPlayerIndex(players, playerId);
 	if (playerIndex !== -1) {
 		log.info(`Updating player ${playerId} websocket`);
 		players[playerIndex].websocket = websocket;
 	} else {
-		const player = createPlayer(context, event);
+		const player = createPlayer(context, <JoinGameEvent>event);
 		players.push(player);
 	}
 	sendGameState(state, playerId);
@@ -92,8 +93,8 @@ actions.closeIssue = (context: Context, event: FSMEvent): void => {
 	sendIssueClosed(context, issueId, playerId);
 };
 
-actions.confirmMove = (context: Context, event: FSMEvent, { state }: any): void => {
-	const { activePlayerId, players } = <Required<Context>>context;
+actions.confirmMove = (context: Context, event: FSMEvent, { state }: { state: FSMTypestate }): void => {
+	const { activePlayerId, players } = context;
 	const { playerId } = <ConfirmMoveEvent>event;
 	players.forEach(player => {
 		if (player.playerId === playerId) {
@@ -106,8 +107,8 @@ actions.confirmMove = (context: Context, event: FSMEvent, { state }: any): void 
 	sendMoveConfirmed(state, playerId);
 };
 
-actions.noChange = (context: Context, event: FSMEvent, { state }: any): void => {
-	const { activePlayerId, players } = <Required<Context>>context;
+actions.noChange = (context: Context, event: FSMEvent, { state }: { state: FSMTypestate }): void => {
+	const { activePlayerId, players } = context;
 	const { playerId } = <NoChangeEvent>event;
 	const player = getPlayer(players, playerId);
 	player.status = PlayerStatus.Skipped;

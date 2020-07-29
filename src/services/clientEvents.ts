@@ -15,6 +15,7 @@ import {
 	IssueClosedEvent,
 	MoveConfirmedEvent,
 	PlayerSkippedEvent,
+	FSMTypestate,
 } from '../types';
 import * as uuid from 'uuid';
 
@@ -32,7 +33,7 @@ const getPlayersState = (players: Array<Player>): Array<PlayerState> => {
 	);
 };
 
-export const sendGameState = (state: any, eventByPlayerId: UUID): void => {
+export const sendGameState = (state: FSMTypestate, eventByPlayerId: UUID): void => {
 	const { value: phase, context } = state;
 	const { activePlayerId, gameId, issues, gameOwnerId, players } = context;
 	const playerIndex = getPlayerIndex(players, eventByPlayerId);
@@ -110,9 +111,9 @@ export const sendPlayerAdded = (context: Context, eventByPlayerId: UUID): void =
 	});
 };
 
-export const sendMoveConfirmed = (state: any, eventByPlayerId: UUID): void => {
-	const { value: phase, context }: { value: string; context: Context } = state;
-	const { activePlayerId, gameId, players } = <Required<Context>>context;
+export const sendMoveConfirmed = (state: FSMTypestate, eventByPlayerId: UUID): void => {
+	const { value: phase, context } = state;
+	const { activePlayerId, gameId, players } = context;
 	const event: MoveConfirmedEvent = {
 		type: 'MOVE_CONFIRMED',
 		id: <UUID>uuid.v4(),
@@ -126,9 +127,9 @@ export const sendMoveConfirmed = (state: any, eventByPlayerId: UUID): void => {
 	});
 };
 
-export const sendPlayerSkipped = (state: any, eventByPlayerId: UUID): void => {
-	const { value: phase, context }: { value: string; context: Context } = state;
-	const { activePlayerId, gameId, players } = <Required<Context>>context;
+export const sendPlayerSkipped = (state: FSMTypestate, eventByPlayerId: UUID): void => {
+	const { value: phase, context } = state;
+	const { activePlayerId, gameId, players } = context;
 	const event: PlayerSkippedEvent = {
 		type: 'PLAYER_SKIPPED',
 		id: <UUID>uuid.v4(),
