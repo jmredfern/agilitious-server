@@ -19,12 +19,18 @@ export interface Issue {
 	type: string;
 }
 
+export enum PlayerStatus {
+	AwaitingMove = 'AwaitingMove',
+	ConfirmedChange = 'ConfirmedChange',
+	Skipped = 'Skipped',
+}
+
 export interface Player {
 	avatarId: UUID;
 	name: string;
 	playerId: UUID;
 	websocket: WebSocket;
-	finished?: boolean;
+	status: PlayerStatus;
 }
 
 export interface PlayerState {
@@ -92,6 +98,7 @@ export interface PlayerAddedEvent extends ServerEvent {
 
 export interface MoveConfirmedEvent extends ServerEvent {
 	activePlayerId: UUID;
+	phase: string;
 }
 
 export interface PlayerSkippedEvent extends ServerEvent {

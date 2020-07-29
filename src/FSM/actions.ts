@@ -12,9 +12,11 @@ import {
 	sendMoveConfirmed,
 	sendPlayerSkipped,
 } from '../services/clientEvents';
-import { createPlayer, getNewActivePlayerId, getPlayer, getPlayerIndex } from '../util/player';
+import { createPlayer, getNextPlayerId, getPlayer, getPlayerIndex } from '../util/player';
 import { inspect } from 'util';
-import { Action, Issue, Context, ClientEvent } from '../types';
+import { Action, Issue, Context, ClientEvent, PlayerStatus } from '../types';
+
+const { AwaitingMove, ConfirmedChange } = PlayerStatus;
 
 const log: Logger = getLoggerByFilename(__filename);
 
@@ -77,21 +79,26 @@ actions.closeIssue = (context: Context, event: any): void => {
 	sendIssueClosed(context, issueId, playerId);
 };
 
-actions.confirmMove = (context: Context, event: any): void => {
+actions.confirmMove = (context: Context, event: any, { state }: any): void => {
 	const { activePlayerId, players } = <Required<Context>>context;
 	const { playerId } = event;
-	const player = getPlayer(players, playerId);
-	player.finished = false;
-	context.activePlayerId = getNewActivePlayerId({ activePlayerId, players });
-	sendMoveConfirmed(context, playerId);
+	players.forEach(player => {
+		if (player.playerId === playerId) {
+			player.status = ConfirmedChange;
+		} else {
+			player.status = AwaitingMove;
+		}
+	});
+	context.activePlayerId = getNextPlayerId({ activePlayerId, players });
+	sendMoveConfirmed(state, playerId);
 };
 
 actions.noChange = (context: Context, event: any, { state }: any): void => {
 	const { activePlayerId, players } = <Required<Context>>context;
 	const { playerId } = event;
-	context.activePlayerId = getNewActivePlayerId({ activePlayerId, players });
 	const player = getPlayer(players, playerId);
-	player.finished = true;
+	player.status = PlayerStatus.Skipped;
+	context.activePlayerId = getNextPlayerId({ activePlayerId, players });
 	sendPlayerSkipped(state, playerId);
 };
 
