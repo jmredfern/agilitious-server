@@ -2,7 +2,7 @@
 
 import WebSocket from 'ws';
 import { getNextPlayerId } from '../../../src/util/player';
-import { UUID, Player, PlayerStatus } from '../../../src/types';
+import { UUID, Player, PlayerStatus, FSMWebSocket } from '../../../src/types';
 
 const { AwaitingMove } = PlayerStatus;
 
@@ -26,7 +26,7 @@ describe('util/player', () => {
 						avatarId: <UUID>'4611aa07-64f6-4884-863d-1aface590f72',
 						name: 'player 1',
 						playerId: player1Id,
-						websocket: <WebSocket>{
+						websocket: <FSMWebSocket>{
 							readyState: WebSocket.OPEN,
 						},
 					},
@@ -48,7 +48,7 @@ describe('util/player', () => {
 						avatarId: <UUID>'4611aa07-64f6-4884-863d-1aface590f72',
 						name: 'player 1',
 						playerId: player1Id,
-						websocket: <WebSocket>{
+						websocket: <FSMWebSocket>{
 							readyState: WebSocket.CLOSED,
 						},
 					},
@@ -57,7 +57,7 @@ describe('util/player', () => {
 						avatarId: <UUID>'4611aa07-64f6-4884-863d-1aface590f72',
 						name: 'player 2',
 						playerId: player2Id,
-						websocket: <WebSocket>{
+						websocket: <FSMWebSocket>{
 							readyState: WebSocket.OPEN,
 						},
 					},
@@ -66,7 +66,7 @@ describe('util/player', () => {
 						avatarId: <UUID>'4611aa07-64f6-4884-863d-1aface590f72',
 						name: 'player 3',
 						playerId: player3Id,
-						websocket: <WebSocket>{
+						websocket: <FSMWebSocket>{
 							readyState: WebSocket.CLOSED,
 						},
 					},
@@ -88,7 +88,7 @@ describe('util/player', () => {
 						avatarId: <UUID>'4611aa07-64f6-4884-863d-1aface590f72',
 						name: 'player 1',
 						playerId: player1Id,
-						websocket: <WebSocket>{
+						websocket: <FSMWebSocket>{
 							readyState: WebSocket.OPEN,
 						},
 					},
@@ -97,7 +97,7 @@ describe('util/player', () => {
 						avatarId: <UUID>'4611aa07-64f6-4884-863d-1aface590f72',
 						name: 'player 2',
 						playerId: player2Id,
-						websocket: <WebSocket>{
+						websocket: <FSMWebSocket>{
 							readyState: WebSocket.OPEN,
 						},
 					},
@@ -106,7 +106,7 @@ describe('util/player', () => {
 						avatarId: <UUID>'4611aa07-64f6-4884-863d-1aface590f72',
 						name: 'player 3',
 						playerId: player3Id,
-						websocket: <WebSocket>{
+						websocket: <FSMWebSocket>{
 							readyState: WebSocket.CLOSED,
 						},
 					},
@@ -128,7 +128,7 @@ describe('util/player', () => {
 						avatarId: <UUID>'4611aa07-64f6-4884-863d-1aface590f72',
 						name: 'player 1',
 						playerId: player1Id,
-						websocket: <WebSocket>{
+						websocket: <FSMWebSocket>{
 							readyState: WebSocket.CLOSED,
 						},
 					},
@@ -137,7 +137,7 @@ describe('util/player', () => {
 						avatarId: <UUID>'4611aa07-64f6-4884-863d-1aface590f72',
 						name: 'player 2',
 						playerId: player2Id,
-						websocket: <WebSocket>{
+						websocket: <FSMWebSocket>{
 							readyState: WebSocket.OPEN,
 						},
 					},
@@ -146,7 +146,7 @@ describe('util/player', () => {
 						avatarId: <UUID>'4611aa07-64f6-4884-863d-1aface590f72',
 						name: 'player 3',
 						playerId: player3Id,
-						websocket: <WebSocket>{
+						websocket: <FSMWebSocket>{
 							readyState: WebSocket.OPEN,
 						},
 					},

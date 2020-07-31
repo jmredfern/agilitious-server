@@ -9,9 +9,9 @@ import { Logger } from 'log4js';
 import path from 'path';
 import WebSocket from 'ws';
 import cors from 'cors';
-import { processPlayerEvent } from './FSM/FSM';
+import { processPlayerEvent, processPlayerDisconnect } from './FSM/FSM';
 import { apiRouter } from './apiRouter';
-import { ClientEvent } from './types';
+import { ClientEvent, FSMWebSocket } from './types';
 
 const log: Logger = getLoggerByFilename(__filename);
 const app = express();
@@ -24,11 +24,12 @@ wss.on('connection', (websocket: WebSocket) => {
 	websocket.on('message', (eventJSON: string): void => {
 		const event: ClientEvent = JSON.parse(eventJSON);
 		log.info(`Server received: ${inspect(event)}`);
-		processPlayerEvent(event, websocket);
+		processPlayerEvent(event, <FSMWebSocket>websocket);
 	});
 
 	websocket.on('close', (): void => {
 		log.info('Client disconnected');
+		processPlayerDisconnect(<FSMWebSocket>websocket);
 	});
 });
 

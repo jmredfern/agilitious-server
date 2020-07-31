@@ -3,19 +3,20 @@
 import { sendServerEvent } from '../util/websocket';
 import { getPlayerIndex, isPlayerConnected } from '../util/player';
 import {
-	Context,
+	FSMContext,
 	Issue,
 	Player,
 	PlayerState,
 	UUID,
-	GameStateEvent,
-	PlayerAddedEvent,
-	UpdatedPointsEvent,
-	IssueOpenedEvent,
-	IssueClosedEvent,
-	MoveConfirmedEvent,
-	PlayerSkippedEvent,
+	GameStateServerEvent,
+	PlayerAddedServerEvent,
+	UpdatedPointsServerEvent,
+	IssueOpenedServerEvent,
+	IssueClosedServerEvent,
+	MoveConfirmedServerEvent,
+	PlayerSkippedServerEvent,
 	FSMTypestate,
+	PlayerDisconnectServerEvent as PlayerDisconnectedServerEvent,
 } from '../types';
 import * as uuid from 'uuid';
 
@@ -38,7 +39,7 @@ export const sendGameState = (state: FSMTypestate, eventByPlayerId: UUID): void 
 	const { activePlayerId, gameId, issues, gameOwnerId, players } = context;
 	const playerIndex = getPlayerIndex(players, eventByPlayerId);
 	const player = players[playerIndex];
-	const event: GameStateEvent = {
+	const event: GameStateServerEvent = {
 		type: 'GAME_STATE',
 		id: <UUID>uuid.v4(),
 		eventByPlayerId,
@@ -53,9 +54,9 @@ export const sendGameState = (state: FSMTypestate, eventByPlayerId: UUID): void 
 	sendServerEvent(player, gameId, event);
 };
 
-export const sendUpdatedPoints = (context: Context, issue: Issue, eventByPlayerId: UUID): void => {
+export const sendUpdatedPoints = (context: FSMContext, issue: Issue, eventByPlayerId: UUID): void => {
 	const { gameId, players } = context;
-	const event: UpdatedPointsEvent = {
+	const event: UpdatedPointsServerEvent = {
 		type: 'UPDATED_POINTS',
 		id: <UUID>uuid.v4(),
 		eventByPlayerId,
@@ -67,9 +68,9 @@ export const sendUpdatedPoints = (context: Context, issue: Issue, eventByPlayerI
 	});
 };
 
-export const sendIssueOpened = (context: Context, issueId: UUID, eventByPlayerId: UUID): void => {
+export const sendIssueOpened = (context: FSMContext, issueId: UUID, eventByPlayerId: UUID): void => {
 	const { gameId, players } = context;
-	const event: IssueOpenedEvent = {
+	const event: IssueOpenedServerEvent = {
 		type: 'ISSUE_OPENED',
 		id: <UUID>uuid.v4(),
 		eventByPlayerId,
@@ -81,9 +82,9 @@ export const sendIssueOpened = (context: Context, issueId: UUID, eventByPlayerId
 	});
 };
 
-export const sendIssueClosed = (context: Context, issueId: UUID, eventByPlayerId: UUID): void => {
+export const sendIssueClosed = (context: FSMContext, issueId: UUID, eventByPlayerId: UUID): void => {
 	const { gameId, players } = context;
-	const event: IssueClosedEvent = {
+	const event: IssueClosedServerEvent = {
 		type: 'ISSUE_CLOSED',
 		id: <UUID>uuid.v4(),
 		eventByPlayerId,
@@ -93,9 +94,9 @@ export const sendIssueClosed = (context: Context, issueId: UUID, eventByPlayerId
 	});
 };
 
-export const sendPlayerAdded = (context: Context, eventByPlayerId: UUID): void => {
+export const sendPlayerAdded = (context: FSMContext, eventByPlayerId: UUID): void => {
 	const { gameId, players } = context;
-	const event: PlayerAddedEvent = {
+	const event: PlayerAddedServerEvent = {
 		type: 'PLAYER_ADDED',
 		id: <UUID>uuid.v4(),
 		eventByPlayerId,
@@ -114,7 +115,7 @@ export const sendPlayerAdded = (context: Context, eventByPlayerId: UUID): void =
 export const sendMoveConfirmed = (state: FSMTypestate, eventByPlayerId: UUID): void => {
 	const { value: phase, context } = state;
 	const { activePlayerId, gameId, players } = context;
-	const event: MoveConfirmedEvent = {
+	const event: MoveConfirmedServerEvent = {
 		type: 'MOVE_CONFIRMED',
 		id: <UUID>uuid.v4(),
 		eventByPlayerId,
@@ -130,8 +131,24 @@ export const sendMoveConfirmed = (state: FSMTypestate, eventByPlayerId: UUID): v
 export const sendPlayerSkipped = (state: FSMTypestate, eventByPlayerId: UUID): void => {
 	const { value: phase, context } = state;
 	const { activePlayerId, gameId, players } = context;
-	const event: PlayerSkippedEvent = {
+	const event: PlayerSkippedServerEvent = {
 		type: 'PLAYER_SKIPPED',
+		id: <UUID>uuid.v4(),
+		eventByPlayerId,
+
+		activePlayerId,
+		phase,
+	};
+	players.forEach(player => {
+		sendServerEvent(player, gameId, event);
+	});
+};
+
+export const sendPlayerDisconnected = (state: FSMTypestate, eventByPlayerId: UUID): void => {
+	const { value: phase, context } = state;
+	const { activePlayerId, gameId, players } = context;
+	const event: PlayerDisconnectedServerEvent = {
+		type: 'PLAYER_DISCONNECTED',
 		id: <UUID>uuid.v4(),
 		eventByPlayerId,
 

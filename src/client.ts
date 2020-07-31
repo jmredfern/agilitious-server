@@ -10,21 +10,22 @@ import { Logger } from 'log4js';
 import {
 	UUID,
 	ClientEvent,
-	UpdatePointsEvent,
-	OpenIssueEvent,
-	CloseIssueEvent,
-	NoChangeEvent,
+	UpdatePointsClientEvent,
+	OpenIssueClientEvent,
+	CloseIssueClientEvent,
+	NoChangeClientEvent,
 	ConfirmMoveEvent,
-	JoinGameEvent,
+	JoinGameClientEvent,
 	FSMEvent,
+	FSMWebSocket,
 } from './types';
 
 const log: Logger = getLoggerByFilename(__filename);
 
 const ERROR_RETRY_TIMEOUT = 5000;
 
-const joinGame = (gameId: UUID, playerId: UUID, websocket: WebSocket): void => {
-	const event: JoinGameEvent = <JoinGameEvent>{
+const joinGame = (gameId: UUID, playerId: UUID, websocket: FSMWebSocket): void => {
+	const event: JoinGameClientEvent = <JoinGameClientEvent>{
 		type: 'JOIN_GAME',
 		gameId,
 		id: <UUID>uuid.v4(),
@@ -34,7 +35,7 @@ const joinGame = (gameId: UUID, playerId: UUID, websocket: WebSocket): void => {
 	sendClientEvent(websocket, event);
 };
 
-const getUpdatePointsEvent = (gameId: UUID, playerId: UUID): UpdatePointsEvent => ({
+const getUpdatePointsEvent = (gameId: UUID, playerId: UUID): UpdatePointsClientEvent => ({
 	type: 'UPDATE_POINTS',
 	playerId,
 	points: getRandomPoints(),
@@ -50,14 +51,14 @@ const getConfirmMoveEvent = (gameId: UUID, playerId: UUID): ConfirmMoveEvent => 
 	id: <UUID>uuid.v4(),
 });
 
-const getNoChangeEvent = (gameId: UUID, playerId: UUID): NoChangeEvent => ({
+const getNoChangeEvent = (gameId: UUID, playerId: UUID): NoChangeClientEvent => ({
 	type: 'NO_CHANGE',
 	playerId,
 	gameId,
 	id: <UUID>uuid.v4(),
 });
 
-const getOpenIssueEvent = (gameId: UUID, playerId: UUID): OpenIssueEvent => ({
+const getOpenIssueEvent = (gameId: UUID, playerId: UUID): OpenIssueClientEvent => ({
 	type: 'OPEN_ISSUE',
 	playerId,
 	issueId: <UUID>'8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
@@ -65,7 +66,7 @@ const getOpenIssueEvent = (gameId: UUID, playerId: UUID): OpenIssueEvent => ({
 	id: <UUID>uuid.v4(),
 });
 
-const getCloseIssueEvent = (gameId: UUID, playerId: UUID): CloseIssueEvent => ({
+const getCloseIssueEvent = (gameId: UUID, playerId: UUID): CloseIssueClientEvent => ({
 	type: 'CLOSE_ISSUE',
 	playerId,
 	issueId: <UUID>'8c7e35ea-92b8-4976-b5d4-a5b90cb1bc8d',
@@ -84,7 +85,7 @@ const getNextEvents = (gameId: UUID, playerId: UUID): Array<FSMEvent> => [
 	getNoChangeEvent(gameId, playerId),
 ];
 
-const sendNextEvent = (websocket: WebSocket): void => {
+const sendNextEvent = (websocket: FSMWebSocket): void => {
 	if (nextEventIndex <= nextEvents.length - 1) {
 		sendClientEvent(websocket, nextEvents[nextEventIndex++]);
 	}
@@ -93,7 +94,7 @@ const sendNextEvent = (websocket: WebSocket): void => {
 const connect = (gameId: UUID, playerId: UUID, websocketUrl: string): void => {
 	log.info(`Connecting to ${websocketUrl}`);
 
-	const websocket = new WebSocket(websocketUrl);
+	const websocket: FSMWebSocket = <FSMWebSocket>new WebSocket(websocketUrl);
 
 	let connectionErrored = false;
 

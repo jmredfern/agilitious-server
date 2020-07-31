@@ -1,13 +1,13 @@
 'use strict';
 import { getLoggerByFilename, trimString } from '../util/logger';
 import WebSocket from 'ws';
-import { Player, Event, ClientEvent, UUID } from '../types';
+import { Player, Event, ClientEvent, UUID, FSMWebSocket } from '../types';
 import { Logger } from 'log4js';
 import { inspect } from 'util';
 
 const log: Logger = getLoggerByFilename(__filename);
 
-const sendEvent = (websocket: WebSocket, event: Event): void => {
+export const sendEvent = (websocket: FSMWebSocket, event: Event): void => {
 	if (websocket.readyState === WebSocket.OPEN) {
 		try {
 			websocket.send(JSON.stringify(event));
@@ -27,7 +27,7 @@ export const sendServerEvent = <E extends Event>(player: Player, gameId: UUID, e
 	sendEvent(websocket, event);
 };
 
-export const sendClientEvent = (websocket: WebSocket, event: ClientEvent): void => {
+export const sendClientEvent = (websocket: FSMWebSocket, event: ClientEvent): void => {
 	log.info(`Sending client event ${event.type} ${trimString(inspect(event))}`);
 	sendEvent(websocket, event);
 };

@@ -1,25 +1,23 @@
 'use strict';
 
 import { getLoggerByFilename } from '../util/logger';
-import { Player, PlayerStatus, Context, FSMEvent } from '../types';
+import { Player, PlayerStatus, FSMContext, FSMEvent } from '../types';
 import { Logger } from 'log4js';
 import { isPlayerConnected } from '../util/player';
 
 const log: Logger = getLoggerByFilename(__filename);
 
-export const isPlayersTurn = (context: Context, event: FSMEvent): boolean => {
+export const isPlayersTurn = (context: FSMContext, event: FSMEvent): boolean => {
 	const { activePlayerId } = context;
 	const result = activePlayerId && activePlayerId === event.playerId;
 	if (!result) {
 		const { type, id, playerId } = event;
-		log.warn(
-			`Illegal: move attempted by player out of turn. event: [type: ${type}, id: ${id}], playerId: ${playerId}`,
-		);
+		log.warn(`Move attempted by player out of turn. event: [type: ${type}, id: ${id}], playerId: ${playerId}`);
 	}
 	return result;
 };
 
-export const areOtherPlayersDone = (context: Context, event: FSMEvent): boolean => {
+export const areOtherPlayersDone = (context: FSMContext, event: FSMEvent): boolean => {
 	const { players } = context;
 	const { playerId: activePlayerId } = event;
 	return players.reduce((result: boolean, player: Player): boolean => {
@@ -34,7 +32,7 @@ export const areOtherPlayersDone = (context: Context, event: FSMEvent): boolean 
 	}, true);
 };
 
-export const isOnlyConnectedPlayer = (context: Context, event: FSMEvent): boolean => {
+export const isOnlyConnectedPlayer = (context: FSMContext, event: FSMEvent): boolean => {
 	const { players } = context;
 	const { playerId: playerIdToCheckFor } = event;
 	return players.reduce((result: boolean, player: Player): boolean => {
