@@ -1,6 +1,8 @@
 'use strict';
+
 import WebSocket from 'ws';
-import { StateSchema } from 'xstate';
+import { State, Interpreter, StateMachine, StateConfig } from 'xstate';
+import Timeout = NodeJS.Timeout;
 
 export type UUID = string & { readonly _: unique symbol }; // ensure string can't be assigned to a UUID
 
@@ -43,8 +45,9 @@ export interface Player {
 	avatarId: UUID;
 	name: string;
 	playerId: UUID;
-	websocket: WebSocket;
+	websocket: FSMWebSocket;
 	status: PlayerStatus;
+	cancelPlayerDisconnect?: Timeout;
 }
 
 export interface PlayerState {
@@ -54,33 +57,42 @@ export interface PlayerState {
 	avatarId: UUID;
 }
 
-export interface State {
-	[key: string]: StateSchema<any>;
-}
-
 export interface FSMStateSchema {
 	states: {
-		START: State;
-		PLAYING: State;
-		FINISHED: State;
+		START: State<FSMContext, FSMEvent, FSMStateSchema, FSMTypestate>;
+		PLAYING: State<FSMContext, FSMEvent, FSMStateSchema, FSMTypestate>;
+		FINISHED: State<FSMContext, FSMEvent, FSMStateSchema, FSMTypestate>;
 	};
 }
+
+export type FSM = Interpreter<FSMContext, FSMStateSchema, FSMEvent, FSMTypestate>;
+
+export type FSMState = State<FSMContext, FSMEvent, FSMStateSchema, FSMTypestate>;
+
+export type FSMStateMachine = StateMachine<FSMContext, FSMStateSchema, FSMEvent>;
+
+export type FSMStateConfig = StateConfig<FSMContext, FSMEvent>;
 
 export type FSMTypestate =
 	| {
 			value: 'START';
-			context: Context;
+			context: FSMContext;
 	  }
 	| {
 			value: 'PLAYING';
-			context: Context;
+			context: FSMContext;
 	  }
 	| {
 			value: 'FINISHED';
-			context: Context;
+			context: FSMContext;
 	  };
 
-export interface Context {
+export interface FSMWebSocket extends WebSocket {
+	gameId?: UUID;
+	playerId?: UUID;
+}
+
+export interface FSMContext {
 	activePlayerId: UUID;
 	avatarSetId: UUID;
 	gameId: UUID;
@@ -104,31 +116,31 @@ export interface ClientEvent extends Event {
 	playerId: UUID;
 }
 
-export interface CreateGameEvent extends ClientEvent {
+export interface CreateGameClientEvent extends ClientEvent {
 	type: 'CREATE_GAME';
 	avatarSetId: UUID;
-	websocket: WebSocket;
+	websocket: FSMWebSocket;
 	name: string;
 }
 
-export interface JoinGameEvent extends ClientEvent {
+export interface JoinGameClientEvent extends ClientEvent {
 	type: 'JOIN_GAME';
-	websocket: WebSocket;
+	websocket: FSMWebSocket;
 	name: string;
 }
 
-export interface UpdatePointsEvent extends ClientEvent {
+export interface UpdatePointsClientEvent extends ClientEvent {
 	type: 'UPDATE_POINTS';
 	issueId: UUID;
 	points: number;
 }
 
-export interface OpenIssueEvent extends ClientEvent {
+export interface OpenIssueClientEvent extends ClientEvent {
 	type: 'OPEN_ISSUE';
 	issueId: UUID;
 }
 
-export interface CloseIssueEvent extends ClientEvent {
+export interface CloseIssueClientEvent extends ClientEvent {
 	type: 'CLOSE_ISSUE';
 	issueId: UUID;
 }
@@ -137,28 +149,34 @@ export interface ConfirmMoveEvent extends ClientEvent {
 	type: 'CONFIRM_MOVE';
 }
 
-export interface NoChangeEvent extends ClientEvent {
+export interface NoChangeClientEvent extends ClientEvent {
 	type: 'NO_CHANGE';
 }
 
+export interface PlayerDisconnectClientEvent extends ClientEvent {
+	type: 'PLAYER_DISCONNECT';
+}
+
 export interface Action {
-	(context: Context, event: FSMEvent, { state }: { state: FSMTypestate }): void;
+	(context: FSMContext, event: FSMEvent, { state }: { state: FSMTypestate }): void;
 }
 
 export type FSMEvent =
-	| CreateGameEvent
-	| JoinGameEvent
-	| UpdatePointsEvent
-	| OpenIssueEvent
-	| CloseIssueEvent
+	| CreateGameClientEvent
+	| JoinGameClientEvent
+	| UpdatePointsClientEvent
+	| OpenIssueClientEvent
+	| CloseIssueClientEvent
 	| ConfirmMoveEvent
-	| NoChangeEvent;
+	| NoChangeClientEvent
+	| PlayerDisconnectClientEvent;
 
 export interface ServerEvent extends Event {
 	eventByPlayerId: UUID;
 }
 
-export interface GameStateEvent extends ServerEvent {
+export interface GameStateServerEvent extends ServerEvent {
+	type: 'GAME_STATE';
 	activePlayerId: UUID;
 	gameOwnerId: UUID;
 	issues: Array<Issue>;
@@ -167,26 +185,51 @@ export interface GameStateEvent extends ServerEvent {
 	players: Array<PlayerState>;
 }
 
-export interface UpdatedPointsEvent extends ServerEvent {
+export interface UpdatedPointsServerEvent extends ServerEvent {
+	type: 'UPDATED_POINTS';
 	issue: Issue;
 }
 
-export interface IssueOpenedEvent extends ServerEvent {
+export interface IssueOpenedServerEvent extends ServerEvent {
+	type: 'ISSUE_OPENED';
 	issueId: UUID;
 }
 
-export type IssueClosedEvent = ServerEvent;
+export interface IssueClosedServerEvent extends ServerEvent {
+	type: 'ISSUE_CLOSED';
+}
 
-export interface PlayerAddedEvent extends ServerEvent {
+export interface PlayerAddedServerEvent extends ServerEvent {
+	type: 'PLAYER_ADDED';
 	players: Array<PlayerState>;
 }
 
-export interface MoveConfirmedEvent extends ServerEvent {
+export interface MoveConfirmedServerEvent extends ServerEvent {
+	type: 'MOVE_CONFIRMED';
 	activePlayerId: UUID;
 	phase: string;
 }
 
-export interface PlayerSkippedEvent extends ServerEvent {
+export interface PlayerSkippedServerEvent extends ServerEvent {
+	type: 'PLAYER_SKIPPED';
 	activePlayerId: UUID;
 	phase: string;
+}
+
+export interface PlayerDisconnectServerEvent extends ServerEvent {
+	type: 'PLAYER_DISCONNECTED';
+	activePlayerId: UUID;
+	phase: string;
+}
+
+export interface FSMNotFoundEvent extends Event {
+	type: 'FSM_NOT_FOUND';
+}
+
+export interface FSMStateEntity {
+	id: UUID;
+	json: string;
+	current_state: string;
+	created_date: Date;
+	updated_date: Date;
 }

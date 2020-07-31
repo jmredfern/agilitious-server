@@ -1,10 +1,10 @@
 'use strict';
 
 import WebSocket from 'ws';
-import { Player, Context, UUID, PlayerStatus, CreateGameEvent, JoinGameEvent } from '../types';
+import { Player, FSMContext, UUID, PlayerStatus, CreateGameClientEvent, JoinGameClientEvent } from '../types';
 import { getAvailableAvatarId } from '../services/avatarService';
 
-export const createPlayer = (context: Context, event: CreateGameEvent | JoinGameEvent): Player => {
+export const createPlayer = (context: FSMContext, event: CreateGameClientEvent | JoinGameClientEvent): Player => {
 	const { avatarSetId, players } = context;
 	const { name, playerId, websocket } = event;
 	const avatarId = getAvailableAvatarId(players, avatarSetId);

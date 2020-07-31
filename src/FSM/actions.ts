@@ -11,23 +11,24 @@ import {
 	sendPlayerAdded,
 	sendPlayerSkipped,
 	sendUpdatedPoints,
-} from '../services/clientEvents';
+	sendPlayerDisconnected,
+} from '../services/serverEvents';
 import { createPlayer, getNextPlayerId, getPlayer, getPlayerIndex } from '../util/player';
 import { inspect } from 'util';
 import {
 	Action,
-	CloseIssueEvent,
+	CloseIssueClientEvent,
 	ConfirmMoveEvent,
-	Context,
-	CreateGameEvent,
+	FSMContext,
+	CreateGameClientEvent,
 	FSMEvent,
-	FSMTypestate,
 	Issue,
-	JoinGameEvent,
-	NoChangeEvent,
-	OpenIssueEvent,
+	JoinGameClientEvent,
+	NoChangeClientEvent,
+	OpenIssueClientEvent,
 	PlayerStatus,
-	UpdatePointsEvent,
+	UpdatePointsClientEvent,
+	PlayerDisconnectClientEvent,
 } from '../types';
 
 const { AwaitingMove, ConfirmedChange } = PlayerStatus;
@@ -38,37 +39,46 @@ const actions: {
 	[actionName: string]: Action;
 } = {};
 
-actions.createGame = (context: Context, event: FSMEvent, { state }: { state: FSMTypestate }): void => {
+actions.createGame = (context: FSMContext, event: FSMEvent, { state }: any): void => {
 	const { players } = context;
-	const { avatarSetId, playerId } = <CreateGameEvent>event;
+	const { avatarSetId, playerId } = <CreateGameClientEvent>event;
 
 	context.activePlayerId = playerId;
 	context.avatarSetId = avatarSetId;
-	const player = createPlayer(context, <CreateGameEvent>event);
+	const player = createPlayer(context, <CreateGameClientEvent>event);
 	players.push(player);
 
 	sendGameState(state, playerId);
 };
 
-actions.addPlayer = (context: Context, event: FSMEvent, { state }: { state: FSMTypestate }): void => {
-	const { players } = context;
-	const { playerId, websocket } = <JoinGameEvent>event;
+actions.addPlayer = (context: FSMContext, event: FSMEvent, { state }: any): void => {
+	const { gameId, players } = context;
+	const { playerId, websocket } = <JoinGameClientEvent>event;
 
 	const playerIndex = getPlayerIndex(players, playerId);
 	if (playerIndex !== -1) {
 		log.info(`Updating player ${playerId} websocket`);
-		players[playerIndex].websocket = websocket;
+		const player = players[playerIndex];
+		player.websocket = websocket;
+		if (player.cancelPlayerDisconnect) {
+			clearTimeout(player.cancelPlayerDisconnect);
+			player.cancelPlayerDisconnect = undefined;
+		}
 	} else {
-		const player = createPlayer(context, <JoinGameEvent>event);
+		const player = createPlayer(context, <JoinGameClientEvent>event);
 		players.push(player);
 	}
+	// Storing gameId and playerId on websocket so that if a player's websocket disconnects the
+	// websocket can be used to lookup the player and skip their game turn
+	websocket.gameId = gameId;
+	websocket.playerId = playerId;
 	sendGameState(state, playerId);
 	sendPlayerAdded(context, playerId);
 };
 
-actions.updatePoints = (context: Context, event: FSMEvent): void => {
+actions.updatePoints = (context: FSMContext, event: FSMEvent): void => {
 	const { issues } = context;
-	const { issueId, playerId, points } = <UpdatePointsEvent>event;
+	const { issueId, playerId, points } = <UpdatePointsClientEvent>event;
 	if (!validateFibonacciNumber(points)) {
 		log.warn(`Tried to update story points with non fibonacci number!! [event:${inspect(event)}]`);
 		return;
@@ -83,17 +93,17 @@ actions.updatePoints = (context: Context, event: FSMEvent): void => {
 	sendUpdatedPoints(context, issue, playerId);
 };
 
-actions.openIssue = (context: Context, event: FSMEvent): void => {
-	const { issueId, playerId } = <OpenIssueEvent>event;
+actions.openIssue = (context: FSMContext, event: FSMEvent): void => {
+	const { issueId, playerId } = <OpenIssueClientEvent>event;
 	sendIssueOpened(context, issueId, playerId);
 };
 
-actions.closeIssue = (context: Context, event: FSMEvent): void => {
-	const { issueId, playerId } = <CloseIssueEvent>event;
+actions.closeIssue = (context: FSMContext, event: FSMEvent): void => {
+	const { issueId, playerId } = <CloseIssueClientEvent>event;
 	sendIssueClosed(context, issueId, playerId);
 };
 
-actions.confirmMove = (context: Context, event: FSMEvent, { state }: { state: FSMTypestate }): void => {
+actions.confirmMove = (context: FSMContext, event: FSMEvent, { state }: any): void => {
 	const { activePlayerId, players } = context;
 	const { playerId } = <ConfirmMoveEvent>event;
 	players.forEach(player => {
@@ -107,13 +117,27 @@ actions.confirmMove = (context: Context, event: FSMEvent, { state }: { state: FS
 	sendMoveConfirmed(state, playerId);
 };
 
-actions.noChange = (context: Context, event: FSMEvent, { state }: { state: FSMTypestate }): void => {
+actions.noChange = (context: FSMContext, event: FSMEvent, { state }: any): void => {
 	const { activePlayerId, players } = context;
-	const { playerId } = <NoChangeEvent>event;
+	const { playerId } = <NoChangeClientEvent>event;
 	const player = getPlayer(players, playerId);
 	player.status = PlayerStatus.Skipped;
 	context.activePlayerId = getNextPlayerId({ activePlayerId, players });
 	sendPlayerSkipped(state, playerId);
+};
+
+actions.playerDisconnect = (context: FSMContext, event: FSMEvent, { state }: any): void => {
+	const disconnectGracePeriodMs = 20000;
+	const { activePlayerId, players } = context;
+	const { playerId } = <PlayerDisconnectClientEvent>event;
+	const cancelPlayerDisconnect = setTimeout(() => {
+		if (activePlayerId === playerId) {
+			context.activePlayerId = getNextPlayerId({ activePlayerId, players });
+		}
+		sendPlayerDisconnected(state, playerId);
+	}, disconnectGracePeriodMs);
+	const player = getPlayer(players, playerId);
+	player.cancelPlayerDisconnect = cancelPlayerDisconnect;
 };
 
 export default actions;
