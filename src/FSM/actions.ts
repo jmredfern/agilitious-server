@@ -12,6 +12,7 @@ import {
 	sendPlayerSkipped,
 	sendUpdatedPoints,
 	sendPlayerDisconnected,
+	sendGameActivated,
 } from '../services/serverEvents';
 import { createPlayer, getNextPlayerId, getPlayer, getPlayerIndex } from '../util/player';
 import { inspect } from 'util';
@@ -60,13 +61,14 @@ actions.addPlayer = (context: FSMContext, event: FSMEvent, { state }: any): void
 		log.info(`Updating player ${playerId} websocket`);
 		const player = players[playerIndex];
 		player.websocket = websocket;
-		if (player.cancelPlayerDisconnect) {
-			clearTimeout(player.cancelPlayerDisconnect);
-			player.cancelPlayerDisconnect = undefined;
+		if (player.ephemeral.cancelPlayerDisconnect) {
+			clearTimeout(player.ephemeral.cancelPlayerDisconnect);
+			delete player.ephemeral.cancelPlayerDisconnect;
 		}
 	} else {
 		const player = createPlayer(context, <JoinGameClientEvent>event);
 		players.push(player);
+		log.info(`Added player ${playerId} to game ${gameId}`);
 	}
 	// Storing gameId and playerId on websocket so that if a player's websocket disconnects the
 	// websocket can be used to lookup the player and skip their game turn
@@ -137,7 +139,11 @@ actions.playerDisconnect = (context: FSMContext, event: FSMEvent, { state }: any
 		sendPlayerDisconnected(state, playerId);
 	}, disconnectGracePeriodMs);
 	const player = getPlayer(players, playerId);
-	player.cancelPlayerDisconnect = cancelPlayerDisconnect;
+	player.ephemeral.cancelPlayerDisconnect = cancelPlayerDisconnect;
+};
+
+actions.activateGame = (context: FSMContext, event: FSMEvent, { state }: any): void => {
+	sendGameActivated(state);
 };
 
 export default actions;

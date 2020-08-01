@@ -47,7 +47,9 @@ export interface Player {
 	playerId: UUID;
 	websocket: FSMWebSocket;
 	status: PlayerStatus;
-	cancelPlayerDisconnect?: Timeout;
+	ephemeral: {
+		cancelPlayerDisconnect?: Timeout;
+	};
 }
 
 export interface PlayerState {
@@ -59,9 +61,15 @@ export interface PlayerState {
 
 export interface FSMStateSchema {
 	states: {
-		START: State<FSMContext, FSMEvent, FSMStateSchema, FSMTypestate>;
-		PLAYING: State<FSMContext, FSMEvent, FSMStateSchema, FSMTypestate>;
-		FINISHED: State<FSMContext, FSMEvent, FSMStateSchema, FSMTypestate>;
+		ACTIVE: {
+			states: {
+				START: FSMState;
+				PLAYING: FSMState;
+				FINISHED: FSMState;
+				HISTORY: FSMState;
+			};
+		};
+		PERSISTED: FSMState;
 	};
 }
 
@@ -73,17 +81,31 @@ export type FSMStateMachine = StateMachine<FSMContext, FSMStateSchema, FSMEvent>
 
 export type FSMStateConfig = StateConfig<FSMContext, FSMEvent>;
 
+export type FSMStateValue = string | { ACTIVE: string };
+
 export type FSMTypestate =
 	| {
-			value: 'START';
+			value: 'ACTIVE';
 			context: FSMContext;
 	  }
 	| {
-			value: 'PLAYING';
+			value: { ACTIVE: 'START' };
 			context: FSMContext;
 	  }
 	| {
-			value: 'FINISHED';
+			value: { ACTIVE: 'PLAYING' };
+			context: FSMContext;
+	  }
+	| {
+			value: { ACTIVE: 'FINISHED' };
+			context: FSMContext;
+	  }
+	| {
+			value: { ACTIVE: 'HISTORY' };
+			context: FSMContext;
+	  }
+	| {
+			value: 'PERSISTED';
 			context: FSMContext;
 	  };
 
@@ -99,6 +121,9 @@ export interface FSMContext {
 	issues: Array<Issue>;
 	gameOwnerId: UUID;
 	players: Array<Player>;
+	ephemeral: {
+		cancelScheduledActivate?: Timeout;
+	};
 }
 
 export interface AvatarSet {
@@ -157,6 +182,14 @@ export interface PlayerDisconnectClientEvent extends ClientEvent {
 	type: 'PLAYER_DISCONNECT';
 }
 
+export interface ActivateEvent extends ClientEvent {
+	type: 'ACTIVATE';
+}
+
+export interface PersistEvent extends ClientEvent {
+	type: 'PERSIST';
+}
+
 export interface Action {
 	(context: FSMContext, event: FSMEvent, { state }: { state: FSMTypestate }): void;
 }
@@ -169,15 +202,16 @@ export type FSMEvent =
 	| CloseIssueClientEvent
 	| ConfirmMoveEvent
 	| NoChangeClientEvent
-	| PlayerDisconnectClientEvent;
+	| PlayerDisconnectClientEvent
+	| ActivateEvent
+	| PersistEvent;
 
-export interface ServerEvent extends Event {
-	eventByPlayerId: UUID;
-}
+export type ServerEvent = Event;
 
 export interface GameStateServerEvent extends ServerEvent {
 	type: 'GAME_STATE';
 	activePlayerId: UUID;
+	eventByPlayerId: UUID;
 	gameOwnerId: UUID;
 	issues: Array<Issue>;
 	phase: string;
@@ -187,49 +221,62 @@ export interface GameStateServerEvent extends ServerEvent {
 
 export interface UpdatedPointsServerEvent extends ServerEvent {
 	type: 'UPDATED_POINTS';
+	eventByPlayerId: UUID;
 	issue: Issue;
+}
+
+export interface GameActivatedServerEvent extends ServerEvent {
+	type: 'GAME_ACTIVATED';
+	phase: string;
 }
 
 export interface IssueOpenedServerEvent extends ServerEvent {
 	type: 'ISSUE_OPENED';
+	eventByPlayerId: UUID;
 	issueId: UUID;
 }
 
 export interface IssueClosedServerEvent extends ServerEvent {
 	type: 'ISSUE_CLOSED';
+	eventByPlayerId: UUID;
 }
 
 export interface PlayerAddedServerEvent extends ServerEvent {
 	type: 'PLAYER_ADDED';
+	eventByPlayerId: UUID;
 	players: Array<PlayerState>;
 }
 
 export interface MoveConfirmedServerEvent extends ServerEvent {
 	type: 'MOVE_CONFIRMED';
 	activePlayerId: UUID;
+	eventByPlayerId: UUID;
 	phase: string;
 }
 
 export interface PlayerSkippedServerEvent extends ServerEvent {
 	type: 'PLAYER_SKIPPED';
 	activePlayerId: UUID;
+	eventByPlayerId: UUID;
 	phase: string;
 }
 
 export interface PlayerDisconnectServerEvent extends ServerEvent {
 	type: 'PLAYER_DISCONNECTED';
 	activePlayerId: UUID;
+	eventByPlayerId: UUID;
 	phase: string;
 }
 
-export interface FSMNotFoundEvent extends Event {
+export interface FSMNotFoundEvent extends ServerEvent {
 	type: 'FSM_NOT_FOUND';
+	gameId: UUID;
 }
 
 export interface FSMStateEntity {
 	id: UUID;
 	json: string;
-	current_state: string;
+	phase: string;
 	created_date: Date;
 	updated_date: Date;
 }

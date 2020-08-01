@@ -11,23 +11,22 @@ export const sendEvent = (websocket: FSMWebSocket, event: Event): void => {
 	if (websocket.readyState === WebSocket.OPEN) {
 		try {
 			websocket.send(JSON.stringify(event));
+			log.debug(`Sending event ${trimString(inspect(event))}`);
 		} catch (error) {
-			log.info(`Failed to send event ${event.id} due to websocket.send() error. [error: ${error}]`);
+			log.info(`Failed to send eventId ${event.id} due to websocket.send() error. [error: ${error}]`);
 		}
 	} else {
-		log.info(`Failed to send event ${event.id} due to websocket not open ${trimString(inspect(event))}`);
+		log.info(`Failed to send eventId ${event.id} due to websocket not open.`);
 	}
 };
 
 export const sendServerEvent = <E extends Event>(player: Player, gameId: UUID, event: E): void => {
 	const { websocket, playerId } = player;
-	log.info(
-		`Sending server event ${event.type} to gameId ${gameId}, playerId ${playerId} ${trimString(inspect(event))}`,
-	);
+	log.info(`Sending server event ${event.type}, playerId ${playerId}, eventId ${event.id} to gameId ${gameId}`);
 	sendEvent(websocket, event);
 };
 
 export const sendClientEvent = (websocket: FSMWebSocket, event: ClientEvent): void => {
-	log.info(`Sending client event ${event.type} ${trimString(inspect(event))}`);
+	log.debug(`Sending client event ${event.type}, eventId ${event.id}`);
 	sendEvent(websocket, event);
 };

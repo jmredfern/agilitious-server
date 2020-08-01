@@ -23,7 +23,7 @@ wss.on('connection', (websocket: WebSocket) => {
 	log.info('Client connected');
 	websocket.on('message', (eventJSON: string): void => {
 		const event: ClientEvent = JSON.parse(eventJSON);
-		log.info(`Server received: ${inspect(event)}`);
+		log.debug(`Server received event: ${inspect(event)}`);
 		processPlayerEvent(event, <FSMWebSocket>websocket);
 	});
 

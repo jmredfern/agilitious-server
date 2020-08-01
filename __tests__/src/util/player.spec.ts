@@ -29,6 +29,7 @@ describe('util/player', () => {
 						websocket: <FSMWebSocket>{
 							readyState: WebSocket.OPEN,
 						},
+						ephemeral: {},
 					},
 				];
 				result = getNextPlayerId({
@@ -51,6 +52,7 @@ describe('util/player', () => {
 						websocket: <FSMWebSocket>{
 							readyState: WebSocket.CLOSED,
 						},
+						ephemeral: {},
 					},
 					{
 						status: AwaitingMove,
@@ -60,6 +62,7 @@ describe('util/player', () => {
 						websocket: <FSMWebSocket>{
 							readyState: WebSocket.OPEN,
 						},
+						ephemeral: {},
 					},
 					{
 						status: AwaitingMove,
@@ -69,6 +72,7 @@ describe('util/player', () => {
 						websocket: <FSMWebSocket>{
 							readyState: WebSocket.CLOSED,
 						},
+						ephemeral: {},
 					},
 				];
 				result = getNextPlayerId({
@@ -91,6 +95,7 @@ describe('util/player', () => {
 						websocket: <FSMWebSocket>{
 							readyState: WebSocket.OPEN,
 						},
+						ephemeral: {},
 					},
 					{
 						status: AwaitingMove,
@@ -100,6 +105,7 @@ describe('util/player', () => {
 						websocket: <FSMWebSocket>{
 							readyState: WebSocket.OPEN,
 						},
+						ephemeral: {},
 					},
 					{
 						status: AwaitingMove,
@@ -109,6 +115,7 @@ describe('util/player', () => {
 						websocket: <FSMWebSocket>{
 							readyState: WebSocket.CLOSED,
 						},
+						ephemeral: {},
 					},
 				];
 				result = getNextPlayerId({
@@ -131,6 +138,7 @@ describe('util/player', () => {
 						websocket: <FSMWebSocket>{
 							readyState: WebSocket.CLOSED,
 						},
+						ephemeral: {},
 					},
 					{
 						status: AwaitingMove,
@@ -140,6 +148,7 @@ describe('util/player', () => {
 						websocket: <FSMWebSocket>{
 							readyState: WebSocket.OPEN,
 						},
+						ephemeral: {},
 					},
 					{
 						status: AwaitingMove,
@@ -149,6 +158,7 @@ describe('util/player', () => {
 						websocket: <FSMWebSocket>{
 							readyState: WebSocket.OPEN,
 						},
+						ephemeral: {},
 					},
 				];
 				result = getNextPlayerId({

@@ -33,6 +33,7 @@ describe('services/avatarService/_getNextAvatarId', () => {
 					name: 'player 1',
 					playerId: <UUID>'065a4368-b566-4e5b-95c7-f37e2982dbe5',
 					websocket: <FSMWebSocket>(<unknown>'websocket 1'),
+					ephemeral: {},
 				},
 			];
 			result = _getNextAvatarId(avatarIds, players);
@@ -51,6 +52,7 @@ describe('services/avatarService/_getNextAvatarId', () => {
 					name: 'player 1',
 					playerId: <UUID>'065a4368-b566-4e5b-95c7-f37e2982dbe5',
 					websocket: <FSMWebSocket>(<unknown>'websocket 1'),
+					ephemeral: {},
 				},
 				{
 					status: AwaitingMove,
@@ -58,6 +60,7 @@ describe('services/avatarService/_getNextAvatarId', () => {
 					name: 'player 2',
 					playerId: <UUID>'3d20b5eb-66ce-45ea-90d0-3e211b34548d',
 					websocket: <FSMWebSocket>(<unknown>'websocket 2'),
+					ephemeral: {},
 				},
 			];
 			result = _getNextAvatarId(avatarIds, players);
@@ -76,6 +79,7 @@ describe('services/avatarService/_getNextAvatarId', () => {
 					name: 'player 1',
 					playerId: <UUID>'065a4368-b566-4e5b-95c7-f37e2982dbe5',
 					websocket: <FSMWebSocket>(<unknown>'websocket 1'),
+					ephemeral: {},
 				},
 				{
 					status: AwaitingMove,
@@ -83,6 +87,7 @@ describe('services/avatarService/_getNextAvatarId', () => {
 					name: 'player 2',
 					playerId: <UUID>'3d20b5eb-66ce-45ea-90d0-3e211b34548d',
 					websocket: <FSMWebSocket>(<unknown>'websocket 2'),
+					ephemeral: {},
 				},
 				{
 					status: AwaitingMove,
@@ -90,6 +95,7 @@ describe('services/avatarService/_getNextAvatarId', () => {
 					name: 'player 3',
 					playerId: <UUID>'335cdd56-d005-489f-b15d-f7968ae7eb3c',
 					websocket: <FSMWebSocket>(<unknown>'websocket 3'),
+					ephemeral: {},
 				},
 			];
 			result = _getNextAvatarId(avatarIds, players);
@@ -108,6 +114,7 @@ describe('services/avatarService/_getNextAvatarId', () => {
 					name: 'player 1',
 					playerId: <UUID>'065a4368-b566-4e5b-95c7-f37e2982dbe5',
 					websocket: <FSMWebSocket>(<unknown>'websocket 1'),
+					ephemeral: {},
 				},
 				{
 					status: AwaitingMove,
@@ -115,6 +122,7 @@ describe('services/avatarService/_getNextAvatarId', () => {
 					name: 'player 2',
 					playerId: <UUID>'3d20b5eb-66ce-45ea-90d0-3e211b34548d',
 					websocket: <FSMWebSocket>(<unknown>'websocket 2'),
+					ephemeral: {},
 				},
 				{
 					status: AwaitingMove,
@@ -122,6 +130,7 @@ describe('services/avatarService/_getNextAvatarId', () => {
 					name: 'player 3',
 					playerId: <UUID>'335cdd56-d005-489f-b15d-f7968ae7eb3c',
 					websocket: <FSMWebSocket>(<unknown>'websocket 3'),
+					ephemeral: {},
 				},
 				{
 					status: AwaitingMove,
@@ -129,6 +138,7 @@ describe('services/avatarService/_getNextAvatarId', () => {
 					name: 'player 4',
 					playerId: <UUID>'d807ed4b-d379-4d2f-b31c-13cfb7f0bb0a',
 					websocket: <FSMWebSocket>(<unknown>'websocket 4'),
+					ephemeral: {},
 				},
 			];
 			result = _getNextAvatarId(avatarIds, players);
