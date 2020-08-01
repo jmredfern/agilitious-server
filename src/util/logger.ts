@@ -4,9 +4,11 @@ import log4js from 'log4js';
 
 const TRIM_LENGTH = 1024;
 
+const LOG_PATTERN = '%d %p %f{1} %[%m%]';
+
 log4js.configure({
-	appenders: { out: { type: 'stdout', layout: { type: 'basic' } } },
-	categories: { default: { appenders: ['out'], level: 'debug' } },
+	appenders: { out: { type: 'stdout', layout: { type: 'pattern', pattern: LOG_PATTERN } } },
+	categories: { default: { enableCallStack: true, appenders: ['out'], level: 'debug' } },
 });
 
 const getFilename = (url: string): string => {

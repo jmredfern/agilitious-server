@@ -9,7 +9,8 @@ export const createPlayer = (context: FSMContext, event: CreateGameClientEvent |
 	const { name, playerId, websocket } = event;
 	const avatarId = getAvailableAvatarId(players, avatarSetId);
 	const status = PlayerStatus.AwaitingMove;
-	return { avatarId, name, playerId, websocket, status };
+	const ephemeral = {};
+	return { avatarId, name, playerId, websocket, status, ephemeral };
 };
 
 export const getPlayerIndex = (players: Array<Player>, playerId: UUID): number => {
