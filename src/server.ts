@@ -9,7 +9,7 @@ import { Logger } from 'log4js';
 import path from 'path';
 import WebSocket from 'ws';
 import cors from 'cors';
-import { processPlayerEvent, processPlayerDisconnect } from './FSM/FSM';
+import { processPlayerEvent, processPlayerDisconnect } from './services/fsmService';
 import { apiRouter } from './apiRouter';
 import { ClientEvent, FSMWebSocket } from './types';
 

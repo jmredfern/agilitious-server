@@ -1,44 +1,61 @@
 'use strict';
 
-import { getLoggerByFilename } from '../util/logger';
 import { Logger } from 'log4js';
-import { validateFibonacciNumber } from '../util/points';
+import { inspect } from 'util';
+import * as uuid from 'uuid';
+import * as FSMStateDAO from '../DAO/FSMState';
+import { clearIssues } from '../services/issueStore';
 import {
+	sendGameActivated,
 	sendGameState,
 	sendIssueClosed,
 	sendIssueOpened,
 	sendMoveConfirmed,
 	sendPlayerAdded,
+	sendPlayerDisconnected,
 	sendPlayerSkipped,
 	sendUpdatedPoints,
-	sendPlayerDisconnected,
-	sendGameActivated,
 } from '../services/serverEvents';
-import { createPlayer, getNextPlayerId, getPlayer, getPlayerIndex } from '../util/player';
-import { inspect } from 'util';
 import {
-	Action,
 	CloseIssueClientEvent,
 	ConfirmMoveEvent,
-	FSMContext,
 	CreateGameClientEvent,
+	FSMContext,
 	FSMEvent,
 	Issue,
 	JoinGameClientEvent,
 	NoChangeClientEvent,
 	OpenIssueClientEvent,
+	PlayerDisconnectClientEvent,
 	PlayerStatus,
 	UpdatePointsClientEvent,
-	PlayerDisconnectClientEvent,
+	UUID,
 } from '../types';
+import { getLoggerByFilename } from '../util/logger';
+import { createPlayer, getNextPlayerId, getPlayer, getPlayerIndex } from '../util/player';
+import { validateFibonacciNumber } from '../util/points';
+import * as fsmStore from './fsmStore';
+import { allPlayersConnected } from './guards';
+import { ActionFunction } from 'xstate';
 
 const { AwaitingMove, ConfirmedChange } = PlayerStatus;
 
 const log: Logger = getLoggerByFilename(__filename);
 
 const actions: {
-	[actionName: string]: Action;
+	[actionName: string]: ActionFunction<FSMContext, FSMEvent>;
 } = {};
+
+const transitionToActivate = (gameId: UUID) => {
+	const fsmService = fsmStore.getFSM(gameId);
+	if (fsmService) {
+		fsmService.send(<FSMEvent>{
+			id: <UUID>uuid.v4(),
+			gameId: gameId,
+			type: 'ACTIVATE',
+		});
+	}
+};
 
 actions.createGame = (context: FSMContext, event: FSMEvent, { state }: any): void => {
 	const { players } = context;
@@ -144,6 +161,54 @@ actions.playerDisconnect = (context: FSMContext, event: FSMEvent, { state }: any
 
 actions.activateGame = (context: FSMContext, event: FSMEvent, { state }: any): void => {
 	sendGameActivated(state);
+};
+
+actions.activateIfAllPlayersConnected = (context: FSMContext, event: FSMEvent): void => {
+	const { gameId } = context;
+	if (allPlayersConnected(context)) {
+		if (context.ephemeral.cancelScheduledActivate) {
+			clearTimeout(context.ephemeral.cancelScheduledActivate);
+			delete context.ephemeral.cancelScheduledActivate;
+			log.info(
+				`Clearing scheduled re-activation, gameId: ${gameId}, event ${event.type} ${event.id} playerId ${event.playerId}`,
+			);
+		}
+		transitionToActivate(gameId);
+		log.info(
+			`All players have reconnected, game activated gameId: ${gameId}, event ${event.type} ${event.id} playerId ${event.playerId}`,
+		);
+	}
+};
+
+actions.scheduleActivate = async (context: FSMContext, event: FSMEvent): Promise<void> => {
+	const activateDelayMs = 5000;
+	if (context.ephemeral.cancelScheduledActivate) {
+		// scheduler already activated
+		return;
+	}
+	const { gameId } = context;
+	const cancelScheduledActivate = setTimeout(async () => {
+		transitionToActivate(gameId);
+		log.info(
+			`Executed scheduled re-activation, gameId: ${gameId}, event ${event.type} ${event.id} playerId ${event.playerId}`,
+		);
+	}, activateDelayMs);
+	context.ephemeral.cancelScheduledActivate = cancelScheduledActivate;
+	log.info(`Scheduled re-activation, gameId: ${gameId}, event ${event.type} ${event.id} playerId ${event.playerId}`);
+};
+
+actions.scheduleCleanup = async (context: FSMContext, event: FSMEvent): Promise<void> => {
+	const cleanupDelayHours = 8;
+	const cleanupDelayMs = cleanupDelayHours * 60 * 60 * 1000;
+	setTimeout(async () => {
+		const { gameId } = context;
+		clearIssues(gameId);
+		fsmStore.removeFSM(gameId);
+		await FSMStateDAO.deleteFSMState(gameId);
+		log.info(
+			`Executed scheduled clean up, gameId: ${gameId}, event ${event.type} ${event.id} playerId ${event.playerId}`,
+		);
+	}, cleanupDelayMs);
 };
 
 export default actions;

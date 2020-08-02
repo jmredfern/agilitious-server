@@ -1,7 +1,7 @@
 'use strict';
 
 import WebSocket from 'ws';
-import { State, Interpreter, StateMachine, StateConfig } from 'xstate';
+import { Interpreter, State, StateConfig, StateMachine } from 'xstate';
 import Timeout = NodeJS.Timeout;
 
 export type UUID = string & { readonly _: unique symbol }; // ensure string can't be assigned to a UUID
@@ -188,10 +188,6 @@ export interface ActivateEvent extends ClientEvent {
 
 export interface PersistEvent extends ClientEvent {
 	type: 'PERSIST';
-}
-
-export interface Action {
-	(context: FSMContext, event: FSMEvent, { state }: { state: FSMTypestate }): void;
 }
 
 export type FSMEvent =
