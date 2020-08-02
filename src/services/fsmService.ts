@@ -16,12 +16,11 @@ const log: Logger = getLoggerByFilename(__filename);
 const mutexes: { [key: string]: Mutex } = {};
 
 const acquireGetFSMMutex = async (gameId: UUID) => {
-	if (mutexes[gameId]) {
-		return await mutexes[gameId].acquire();
+	if (!mutexes[gameId]) {
+		const getFSMMutexTimeoutMs = 5000;
+		const mutexWithTimeout = <any>withTimeout(new Mutex(), getFSMMutexTimeoutMs, new Error('getFSMMutex timeout'));
+		mutexes[gameId] = mutexWithTimeout;
 	}
-	const getFSMMutexTimeoutMs = 5000;
-	const mutexWithTimeout = <any>withTimeout(new Mutex(), getFSMMutexTimeoutMs, new Error('getFSMMutex timeout'));
-	mutexes[gameId] = mutexWithTimeout;
 	return await mutexes[gameId].acquire();
 };
 
