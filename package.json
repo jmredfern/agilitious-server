@@ -89,7 +89,7 @@
 			"eslint --fix"
 		]
 	},
-	"main": "src/index.ts",
+	"main": "src/main.ts",
 	"name": "agilitious",
 	"private": true,
 	"scripts": {
@@ -97,11 +97,11 @@
 		"db:createMigration": "knex migrate:make",
 		"db:migrate": "knex migrate:latest",
 		"db:rollback": "knex migrate:rollback",
-		"dev": "ts-node src/index.ts --server --port 8000",
+		"dev": "ts-node src/main.ts --port 8000",
 		"lint": "eslint '**/*.{js,ts}' --fix",
 		"postinstall": "npm run compile && npm run db:migrate",
 		"pretty": "prettier '**/*.json' --write",
-		"start": "node target/src/index.js --server --port 8000",
+		"start": "node target/src/main.js --port 8000",
 		"test:watch": "jest --verbose --watch",
 		"test": "jest --verbose"
 	},

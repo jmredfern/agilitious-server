@@ -6,7 +6,6 @@ import express from 'express';
 import { inspect } from 'util';
 import { getLoggerByFilename } from './util/logger';
 import { Logger } from 'log4js';
-import path from 'path';
 import WebSocket from 'ws';
 import cors from 'cors';
 import { processPlayerEvent, processPlayerDisconnect } from './services/fsmService';
@@ -37,10 +36,6 @@ app.use(bodyParser.text({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cors());
 app.use('/api', apiRouter);
-app.use(express.static(path.join(__dirname, '../build')));
-app.get('/*', (req, res) => {
-	res.sendFile(path.join(__dirname, '../build', 'index.html'));
-});
 
 export const start = (port: number): void => {
 	log.info(`Starting server, NODE_ENV=${process.env.NODE_ENV}`);
