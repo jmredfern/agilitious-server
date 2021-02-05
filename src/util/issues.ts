@@ -32,11 +32,15 @@ const mapAPIRequestFields = (issue: any): Issue => ({
 	comments: mapComments(issue.renderedFields.comment.comments),
 	created: new Date(issue.fields.created).getTime(),
 	currentPoints: parseInt(issue.namedFields['Story Points'], 10),
+	// hardcode this due to duplicate 'Story Points' fields in JIRA for unknown reason
+	// currentPoints: parseInt(issue.fields.customfield_10035, 10),
 	description: issue.renderedFields.description,
 	epicId: '', // need to make a second loop on the issues to find the uuid for the epic based on epicKey
 	epicKey: issue.namedFields['Epic Link'],
 	key: issue.key,
 	originalPoints: parseInt(issue.namedFields['Story Points'], 10),
+	// hardcode this due to duplicate 'Story Points' fields in JIRA for unknown reason
+	// originalPoints: parseInt(issue.fields.customfield_10035, 10),
 	reporter: issue.fields.reporter.displayName,
 	status: issue.fields.status.name,
 	title: issue.fields.summary,
