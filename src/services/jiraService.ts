@@ -3,6 +3,10 @@
 import _ from 'lodash';
 import axios from 'axios';
 import { TrackedEvent } from '../types';
+import { getLoggerByFilename } from '../util/logger';
+import { Logger } from 'log4js';
+
+const log: Logger = getLoggerByFilename(__filename);
 
 const PAGE_SIZE = 50;
 const CHUNK_SIZE = 10;
@@ -96,6 +100,10 @@ export const getIssuesFromJira = async (
 		});
 	}
 
+	log.info(
+		`Retrieved ${issues.length} issues from JIRA for company '${jiraCompanyName}', project '${jiraProjectId}'`,
+	);
+
 	return issues;
 };
 
@@ -141,6 +149,8 @@ export const updateIssuesInJira = async (
 		});
 
 		await Promise.all(promises);
+
+		log.info(`Updated ${promises.length} issues in JIRA for company '${jiraCompanyName}'`);
 		// TODO: handle request failure
 	}
 };
