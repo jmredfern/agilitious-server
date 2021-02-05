@@ -101,7 +101,8 @@ actions.addPlayer = (context: FSMContext, event: FSMEvent, { state }: any): void
 
 actions.updatePoints = (context: FSMContext, event: FSMEvent): void => {
 	const { issues } = context;
-	const { issueId, playerId, points } = <UpdatePointsClientEvent>event;
+	const updatePointsClientEvent = <UpdatePointsClientEvent>event;
+	const { issueId, playerId, points } = updatePointsClientEvent;
 	if (!validateFibonacciNumber(points)) {
 		log.warn(`Tried to update story points with non fibonacci number!! [event:${inspect(event)}]`);
 		return;
@@ -109,7 +110,7 @@ actions.updatePoints = (context: FSMContext, event: FSMEvent): void => {
 	const issue = issues.find(({ id }: Issue): boolean => id === issueId);
 	if (issue) {
 		issue.currentPoints = points;
-		context.currentMove = <UpdatePointsClientEvent>event;
+		context.currentMoves[updatePointsClientEvent.issueId] = updatePointsClientEvent;
 	} else {
 		log.warn(`Issue not found while trying to update points. [issueId:${issueId}]`);
 		return;
@@ -163,10 +164,8 @@ actions.confirmMove = (context: FSMContext, event: FSMEvent, { state }: any): vo
 		}
 	});
 	context.activePlayerId = getNextPlayerId({ activePlayerId, players });
-	if (context.currentMove) {
-		context.moveHistory.push(context.currentMove);
-		delete context.currentMove;
-	}
+	context.moveHistory.push(...Object.values(context.currentMoves));
+	context.currentMoves = {};
 	sendMoveConfirmed(state, playerId);
 };
 
@@ -176,9 +175,7 @@ actions.noChange = (context: FSMContext, event: FSMEvent, { state }: any): void 
 	const player = getPlayer(players, playerId);
 	player.status = PlayerStatus.Skipped;
 	context.activePlayerId = getNextPlayerId({ activePlayerId, players });
-	if (context.currentMove) {
-		delete context.currentMove;
-	}
+	context.currentMoves = {};
 	sendPlayerSkipped(state, playerId);
 };
 
@@ -189,9 +186,7 @@ actions.playerDisconnect = (context: FSMContext, event: FSMEvent, { state }: any
 	const cancelPlayerDisconnect = setTimeout(() => {
 		if (activePlayerId === playerId) {
 			context.activePlayerId = getNextPlayerId({ activePlayerId, players });
-			if (context.currentMove) {
-				delete context.currentMove;
-			}
+			context.currentMoves = {};
 		}
 		sendPlayerDisconnected(state, playerId);
 	}, disconnectGracePeriodMs);

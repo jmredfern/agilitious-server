@@ -133,8 +133,8 @@ export interface FSMContext {
 	ephemeral: {
 		cancelScheduledActivate?: Timeout;
 	};
-	currentMove?: TrackedEvent;
-	moveHistory: Array<TrackedEvent>;
+	currentMoves: any;
+	moveHistory: any;
 }
 
 export interface AvatarSet {

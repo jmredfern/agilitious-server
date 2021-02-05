@@ -32,6 +32,7 @@ export const createMachine = (gameId: UUID): FSMStateMachine => {
 				sourceIssues: getSourceIssues(gameId),
 				players: <Array<Player>>[],
 				ephemeral: {},
+				currentMoves: [],
 				moveHistory: <Array<TrackedEvent>>[],
 			},
 			id: 'GAME',
