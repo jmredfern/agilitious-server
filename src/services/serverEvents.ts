@@ -38,7 +38,7 @@ const getPlayersState = (players: Array<Player>): Array<PlayerState> => {
 
 export const sendGameState = (state: FSMTypestate, eventByPlayerId: UUID): void => {
 	const { value: stateValue, context } = state;
-	const { activePlayerId, gameId, issues, gameOwnerId, players } = context;
+	const { activePlayerId, gameId, issues, gameOwner, players } = context;
 	const playerIndex = getPlayerIndex(players, eventByPlayerId);
 	const player = players[playerIndex];
 	const event: GameStateServerEvent = {
@@ -47,7 +47,7 @@ export const sendGameState = (state: FSMTypestate, eventByPlayerId: UUID): void 
 		eventByPlayerId,
 
 		activePlayerId,
-		gameOwnerId,
+		gameOwnerId: gameOwner ? gameOwner.playerId : <UUID>'',
 		phase: getPhase(stateValue),
 		playerId: player.playerId,
 		players: getPlayersState(players),
@@ -56,7 +56,7 @@ export const sendGameState = (state: FSMTypestate, eventByPlayerId: UUID): void 
 	sendServerEvent(player, gameId, event);
 };
 
-export const sendUpdatedPoints = (context: FSMContext, issue: Issue, eventByPlayerId: UUID): void => {
+export const sendUpdatedIssue = (context: FSMContext, issue: Issue, eventByPlayerId: UUID): void => {
 	const { gameId, players } = context;
 	const event: UpdatedPointsServerEvent = {
 		type: 'UPDATED_POINTS',
@@ -65,7 +65,7 @@ export const sendUpdatedPoints = (context: FSMContext, issue: Issue, eventByPlay
 
 		issue,
 	};
-	players.forEach(player => {
+	players.forEach((player) => {
 		sendServerEvent(player, gameId, event);
 	});
 };
@@ -79,12 +79,12 @@ export const sendGameActivated = (state: FSMTypestate): void => {
 
 		phase: getPhase(stateValue),
 	};
-	players.forEach(player => {
+	players.forEach((player) => {
 		sendServerEvent(player, gameId, event);
 	});
 };
 
-export const sendIssueOpened = (context: FSMContext, issueId: UUID, eventByPlayerId: UUID): void => {
+export const sendIssueOpened = (context: FSMContext, issueId: string, eventByPlayerId: UUID): void => {
 	const { gameId, players } = context;
 	const event: IssueOpenedServerEvent = {
 		type: 'ISSUE_OPENED',
@@ -93,19 +93,19 @@ export const sendIssueOpened = (context: FSMContext, issueId: UUID, eventByPlaye
 
 		issueId,
 	};
-	players.forEach(player => {
+	players.forEach((player) => {
 		sendServerEvent(player, gameId, event);
 	});
 };
 
-export const sendIssueClosed = (context: FSMContext, issueId: UUID, eventByPlayerId: UUID): void => {
+export const sendIssueClosed = (context: FSMContext, issueId: string, eventByPlayerId: UUID): void => {
 	const { gameId, players } = context;
 	const event: IssueClosedServerEvent = {
 		type: 'ISSUE_CLOSED',
 		id: <UUID>uuid.v4(),
 		eventByPlayerId,
 	};
-	players.forEach(player => {
+	players.forEach((player) => {
 		sendServerEvent(player, gameId, event);
 	});
 };
@@ -119,7 +119,7 @@ export const sendPlayerAdded = (context: FSMContext, eventByPlayerId: UUID): voi
 
 		players: getPlayersState(players),
 	};
-	players.forEach(player => {
+	players.forEach((player) => {
 		const { playerId } = player;
 
 		if (playerId !== eventByPlayerId) {
@@ -139,7 +139,7 @@ export const sendMoveConfirmed = (state: FSMTypestate, eventByPlayerId: UUID): v
 		activePlayerId,
 		phase: getPhase(stateValue),
 	};
-	players.forEach(player => {
+	players.forEach((player) => {
 		sendServerEvent(player, gameId, event);
 	});
 };
@@ -155,7 +155,7 @@ export const sendPlayerSkipped = (state: FSMTypestate, eventByPlayerId: UUID): v
 		activePlayerId,
 		phase: getPhase(stateValue),
 	};
-	players.forEach(player => {
+	players.forEach((player) => {
 		sendServerEvent(player, gameId, event);
 	});
 };
@@ -171,7 +171,7 @@ export const sendPlayerDisconnected = (state: FSMTypestate, eventByPlayerId: UUI
 		activePlayerId,
 		phase: getPhase(stateValue),
 	};
-	players.forEach(player => {
+	players.forEach((player) => {
 		sendServerEvent(player, gameId, event);
 	});
 };

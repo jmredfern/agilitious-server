@@ -22,12 +22,10 @@ export const upsert = async (
 ): Promise<any> => {
 	const firstObjectIfArray = Array.isArray(itemData) ? itemData[0] : itemData;
 	const fieldsToUpdate = Object.keys(firstObjectIfArray)
-		.filter(fieldName => fieldName !== conflictTarget && !fieldsToPreserveOnConflict.includes(fieldName))
-		.map(fieldName => knex.raw('?? = EXCLUDED.??', [fieldName, fieldName]).toString())
+		.filter((fieldName) => fieldName !== conflictTarget && !fieldsToPreserveOnConflict.includes(fieldName))
+		.map((fieldName) => knex.raw('?? = EXCLUDED.??', [fieldName, fieldName]).toString())
 		.join(',\n');
-	const insertString = knex(tableName)
-		.insert(itemData)
-		.toString();
+	const insertString = knex(tableName).insert(itemData).toString();
 	const conflictString = knex
 		.raw(` ON CONFLICT (??) DO UPDATE SET ${fieldsToUpdate} RETURNING *;`, conflictTarget)
 		.toString();

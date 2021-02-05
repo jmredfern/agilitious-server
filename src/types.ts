@@ -12,6 +12,7 @@ export interface JSONIssue {
 	'Custom field (Story Points)': string;
 	'Issue key': string;
 	'Issue Type': string;
+	'Issue id': string;
 	Created: string;
 	Description: string;
 	Reporter: string;
@@ -20,8 +21,9 @@ export interface JSONIssue {
 }
 
 export interface Issue {
-	id: UUID;
+	id: string;
 	acceptanceCriteria: string;
+	comments: Comment[];
 	created: number;
 	currentPoints: number;
 	description: string;
@@ -33,6 +35,11 @@ export interface Issue {
 	status: string;
 	title: string;
 	type: string;
+}
+
+export interface Comment {
+	author: string;
+	body: string;
 }
 
 export enum PlayerStatus {
@@ -65,6 +72,7 @@ export interface FSMStateSchema {
 			states: {
 				START: FSMState;
 				PLAYING: FSMState;
+				GAME_OVER: FSMState;
 				FINISHED: FSMState;
 				HISTORY: FSMState;
 			};
@@ -119,11 +127,14 @@ export interface FSMContext {
 	avatarSetId: UUID;
 	gameId: UUID;
 	issues: Array<Issue>;
-	gameOwnerId: UUID;
+	sourceIssues: any;
+	gameOwner?: GameOwner;
 	players: Array<Player>;
 	ephemeral: {
 		cancelScheduledActivate?: Timeout;
 	};
+	currentMove?: TrackedEvent;
+	moveHistory: Array<TrackedEvent>;
 }
 
 export interface AvatarSet {
@@ -146,6 +157,10 @@ export interface CreateGameClientEvent extends ClientEvent {
 	avatarSetId: UUID;
 	websocket: FSMWebSocket;
 	name: string;
+	jiraEmail?: string;
+	jiraAPIToken?: string;
+	jiraCompanyName?: string;
+	jiraProjectId?: string;
 }
 
 export interface JoinGameClientEvent extends ClientEvent {
@@ -156,18 +171,24 @@ export interface JoinGameClientEvent extends ClientEvent {
 
 export interface UpdatePointsClientEvent extends ClientEvent {
 	type: 'UPDATE_POINTS';
-	issueId: UUID;
+	issueId: string;
 	points: number;
+}
+
+export interface AddCommentClientEvent extends ClientEvent {
+	type: 'ADD_COMMENT';
+	issueId: string;
+	comment: string;
 }
 
 export interface OpenIssueClientEvent extends ClientEvent {
 	type: 'OPEN_ISSUE';
-	issueId: UUID;
+	issueId: string;
 }
 
 export interface CloseIssueClientEvent extends ClientEvent {
 	type: 'CLOSE_ISSUE';
-	issueId: UUID;
+	issueId: string;
 }
 
 export interface ConfirmMoveEvent extends ClientEvent {
@@ -194,6 +215,7 @@ export type FSMEvent =
 	| CreateGameClientEvent
 	| JoinGameClientEvent
 	| UpdatePointsClientEvent
+	| AddCommentClientEvent
 	| OpenIssueClientEvent
 	| CloseIssueClientEvent
 	| ConfirmMoveEvent
@@ -201,6 +223,8 @@ export type FSMEvent =
 	| PlayerDisconnectClientEvent
 	| ActivateEvent
 	| PersistEvent;
+
+export type TrackedEvent = UpdatePointsClientEvent | AddCommentClientEvent;
 
 export type ServerEvent = Event;
 
@@ -216,7 +240,13 @@ export interface GameStateServerEvent extends ServerEvent {
 }
 
 export interface UpdatedPointsServerEvent extends ServerEvent {
-	type: 'UPDATED_POINTS';
+	type: 'UPDATED_POINTS'; // TODO rename this to 'UPDATED_ISSUE'
+	eventByPlayerId: UUID;
+	issue: Issue;
+}
+
+export interface CommentAddedServerEvent extends ServerEvent {
+	type: 'COMMENT_ADDED';
 	eventByPlayerId: UUID;
 	issue: Issue;
 }
@@ -229,7 +259,7 @@ export interface GameActivatedServerEvent extends ServerEvent {
 export interface IssueOpenedServerEvent extends ServerEvent {
 	type: 'ISSUE_OPENED';
 	eventByPlayerId: UUID;
-	issueId: UUID;
+	issueId: string;
 }
 
 export interface IssueClosedServerEvent extends ServerEvent {
@@ -269,10 +299,19 @@ export interface FSMNotFoundEvent extends ServerEvent {
 	gameId: UUID;
 }
 
-export interface FSMStateEntity {
+export interface GameEntity {
 	id: UUID;
-	json: string;
+	fsm_state: string;
 	phase: string;
 	created_date: Date;
 	updated_date: Date;
+}
+
+export interface GameOwner {
+	gameId: UUID;
+	playerId: UUID;
+	jiraAPIToken: string;
+	jiraCompanyName: string;
+	jiraEmail: string;
+	jiraProjectId: string;
 }

@@ -1,9 +1,9 @@
 const upSQL = `
-	CREATE TYPE phase AS ENUM ('START', 'PLAYING', 'FINISHED', 'PERSISTED');
+	CREATE TYPE phase AS ENUM ('START', 'PLAYING', 'GAME_OVER', 'FINISHED', 'PERSISTED');
 
-	CREATE TABLE fsm_state (
+	CREATE TABLE games (
 		id uuid PRIMARY KEY,
-		json jsonb NOT NULL,
+		fsm_state jsonb NOT NULL,
 		phase phase NOT NULL,
 		created_date timestamp NOT NULL,
 		updated_date timestamp NOT NULL
@@ -11,15 +11,14 @@ const upSQL = `
 `;
 
 const downSQL = `
-	DROP TABLE fsm_state;
-
+	DROP TABLE games;
 	DROP TYPE phase;
 `;
 
-exports.up = function(knex) {
+exports.up = function (knex) {
 	return knex.raw(upSQL);
 };
 
-exports.down = function(knex) {
+exports.down = function (knex) {
 	return knex.raw(downSQL);
 };

@@ -1,7 +1,7 @@
 'use strict';
 
 import fs from 'fs';
-import { getIssuesFromCSV } from '../../../src/util/csv';
+import { mapCSVExportToIssues } from '../../../src/util/issues';
 import { Issue } from '../../../src/types';
 
 describe('util/csv/getIssuesFromCSV', () => {
@@ -10,7 +10,7 @@ describe('util/csv/getIssuesFromCSV', () => {
 
 	beforeEach(async () => {
 		testIssuesCSV = fs.readFileSync('__tests__/data/testIssues.csv').toString();
-		result = await getIssuesFromCSV(testIssuesCSV);
+		result = await mapCSVExportToIssues(testIssuesCSV);
 	});
 	it('should convert CSV to JS Object and return', () => {
 		expect(result).toEqual(

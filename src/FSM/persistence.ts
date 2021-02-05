@@ -4,18 +4,22 @@ import { cloneDeep } from 'lodash/fp';
 import safeJsonStringify from 'safe-json-stringify';
 import WebSocket from 'ws';
 import { State } from 'xstate';
-import * as FSMStateDAO from '../DAO/FSMState';
-import { FSMState, FSMStateConfig, Player, UUID } from '../types';
+import * as gamesDAO from '../DAO/games';
+import { FSMContext, FSMState, FSMStateConfig, Player, UUID } from '../types';
 import { getPhase } from '../util/state';
 import { createMachine } from './machine';
 
 const transitionStateToPersisted = (state: any) => {
-	const { gameId, gameOwnerId } = state.context;
-	const machine = createMachine(gameId, gameOwnerId);
-	return machine.transition(state, 'PERSIST');
+	const { gameId } = state.context;
+	const machine = createMachine(gameId);
+	const context = <FSMContext>{
+		...machine.context,
+		gameOwner: state.context.gameOwner,
+	};
+	return machine.withContext(context).transition(state, 'PERSIST');
 };
 
-export const persistState = async (state: any) => {
+export const persistState = async (state: any): Promise<any> => {
 	const clonedState = cloneDeep(state);
 	const transitionedState = transitionStateToPersisted(clonedState);
 	transitionedState.context.players.forEach((player: Player) => {
@@ -26,20 +30,20 @@ export const persistState = async (state: any) => {
 	transitionedState.actions = [];
 	const stateAsJson = safeJsonStringify(transitionedState);
 	const now = new Date();
-	await FSMStateDAO.putFSMState({
+	await gamesDAO.putGame({
 		id: state.context.gameId,
-		json: stateAsJson,
+		fsm_state: stateAsJson,
 		phase: getPhase(state.value),
 		created_date: now,
 		updated_date: now,
 	});
 };
 
-export const getPersistedState = async (gameId: UUID) => {
-	const FSMStateEntity = await FSMStateDAO.getFSMState(gameId);
-	if (!FSMStateEntity) {
+export const getPersistedState = async (gameId: UUID): Promise<any> => {
+	const gameEntity = await gamesDAO.getGame(gameId);
+	if (!gameEntity) {
 		return undefined;
 	}
-	const state: FSMState = State.create(<FSMStateConfig>(<unknown>FSMStateEntity.json));
+	const state: FSMState = State.create(<FSMStateConfig>(<unknown>gameEntity.fsm_state));
 	return state;
 };

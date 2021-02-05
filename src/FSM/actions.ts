@@ -3,7 +3,8 @@
 import { Logger } from 'log4js';
 import { inspect } from 'util';
 import * as uuid from 'uuid';
-import * as FSMStateDAO from '../DAO/FSMState';
+import * as gamesDAO from '../DAO/games';
+import { updateIssuesInJira } from '../services/jiraService';
 import { clearIssues } from '../services/issueStore';
 import {
 	sendGameActivated,
@@ -14,7 +15,7 @@ import {
 	sendPlayerAdded,
 	sendPlayerDisconnected,
 	sendPlayerSkipped,
-	sendUpdatedPoints,
+	sendUpdatedIssue,
 } from '../services/serverEvents';
 import {
 	CloseIssueClientEvent,
@@ -30,6 +31,9 @@ import {
 	PlayerStatus,
 	UpdatePointsClientEvent,
 	UUID,
+	GameOwner,
+	AddCommentClientEvent,
+	Player,
 } from '../types';
 import { getLoggerByFilename } from '../util/logger';
 import { createPlayer, getNextPlayerId, getPlayer, getPlayerIndex } from '../util/player';
@@ -105,11 +109,37 @@ actions.updatePoints = (context: FSMContext, event: FSMEvent): void => {
 	const issue = issues.find(({ id }: Issue): boolean => id === issueId);
 	if (issue) {
 		issue.currentPoints = points;
+		context.currentMove = <UpdatePointsClientEvent>event;
 	} else {
 		log.warn(`Issue not found while trying to update points. [issueId:${issueId}]`);
 		return;
 	}
-	sendUpdatedPoints(context, issue, playerId);
+	sendUpdatedIssue(context, issue, playerId);
+};
+
+actions.addComment = (context: FSMContext, event: FSMEvent): void => {
+	const { issues, players } = context;
+	const addCommentClientEvent = <AddCommentClientEvent>event;
+	const { issueId, playerId, comment } = addCommentClientEvent;
+	const player = players.find(({ playerId: id }: Player) => id === playerId);
+	if (player) {
+		addCommentClientEvent.comment = `${player.name} commented: ${comment}`;
+		context.moveHistory.push(addCommentClientEvent);
+	} else {
+		log.warn(`Player not found while trying to add coment. [issueId:${issueId}]`);
+		return;
+	}
+	const issue = issues.find(({ id }: Issue): boolean => id === issueId);
+	if (issue) {
+		issue.comments.push({
+			author: player.name,
+			body: addCommentClientEvent.comment,
+		});
+	} else {
+		log.warn(`Issue not found while trying to update points. [issueId:${issueId}]`);
+		return;
+	}
+	sendUpdatedIssue(context, issue, playerId);
 };
 
 actions.openIssue = (context: FSMContext, event: FSMEvent): void => {
@@ -125,7 +155,7 @@ actions.closeIssue = (context: FSMContext, event: FSMEvent): void => {
 actions.confirmMove = (context: FSMContext, event: FSMEvent, { state }: any): void => {
 	const { activePlayerId, players } = context;
 	const { playerId } = <ConfirmMoveEvent>event;
-	players.forEach(player => {
+	players.forEach((player) => {
 		if (player.playerId === playerId) {
 			player.status = ConfirmedChange;
 		} else {
@@ -133,6 +163,10 @@ actions.confirmMove = (context: FSMContext, event: FSMEvent, { state }: any): vo
 		}
 	});
 	context.activePlayerId = getNextPlayerId({ activePlayerId, players });
+	if (context.currentMove) {
+		context.moveHistory.push(context.currentMove);
+		delete context.currentMove;
+	}
 	sendMoveConfirmed(state, playerId);
 };
 
@@ -142,6 +176,9 @@ actions.noChange = (context: FSMContext, event: FSMEvent, { state }: any): void 
 	const player = getPlayer(players, playerId);
 	player.status = PlayerStatus.Skipped;
 	context.activePlayerId = getNextPlayerId({ activePlayerId, players });
+	if (context.currentMove) {
+		delete context.currentMove;
+	}
 	sendPlayerSkipped(state, playerId);
 };
 
@@ -152,6 +189,9 @@ actions.playerDisconnect = (context: FSMContext, event: FSMEvent, { state }: any
 	const cancelPlayerDisconnect = setTimeout(() => {
 		if (activePlayerId === playerId) {
 			context.activePlayerId = getNextPlayerId({ activePlayerId, players });
+			if (context.currentMove) {
+				delete context.currentMove;
+			}
 		}
 		sendPlayerDisconnected(state, playerId);
 	}, disconnectGracePeriodMs);
@@ -204,11 +244,17 @@ actions.scheduleCleanup = async (context: FSMContext, event: FSMEvent): Promise<
 		const { gameId } = context;
 		clearIssues(gameId);
 		fsmStore.removeFSM(gameId);
-		await FSMStateDAO.deleteFSMState(gameId);
+		await gamesDAO.deleteGame(gameId);
 		log.info(
 			`Executed scheduled clean up, gameId: ${gameId}, event ${event.type} ${event.id} playerId ${event.playerId}`,
 		);
 	}, cleanupDelayMs);
+};
+
+actions.updateJira = async (context: FSMContext): Promise<void> => {
+	const { moveHistory, gameOwner, sourceIssues } = context;
+	const { jiraCompanyName, jiraEmail, jiraAPIToken } = <GameOwner>gameOwner;
+	await updateIssuesInJira(moveHistory, jiraCompanyName, jiraEmail, jiraAPIToken, sourceIssues);
 };
 
 export default actions;

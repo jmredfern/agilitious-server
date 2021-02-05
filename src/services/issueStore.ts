@@ -1,23 +1,31 @@
 'use strict';
 
-import { getIssuesFromCSV } from '../util/csv';
+import { mapCSVExportToIssues, mapAPIRequestToIssues } from '../util/issues';
 import { Issue, UUID } from '../types';
 
-const store: { [key: string]: Array<Issue> } = {};
+const mappedIssuesStore: { [key: string]: Array<Issue> } = {};
+const sourceIssuesStore: { [key: string]: any } = {};
 
-export const storeCSVIssues = async (gameId: UUID, issuesCSV: string): Promise<void> => {
-	const issues = await getIssuesFromCSV(issuesCSV);
-	store[gameId] = issues;
+export const storeCSVExportIssues = async (gameId: UUID, issues: string): Promise<void> => {
+	const mappedIssues = await mapCSVExportToIssues(issues);
+	mappedIssuesStore[gameId] = mappedIssues;
 };
 
-// export const getCSVIssues = (gameId: UUID): void => {
-// 	// TBD
-// };
+export const storeAPIRequestIssues = (gameId: UUID, issues: any): void => {
+	const mappedIssues = mapAPIRequestToIssues(issues);
+	mappedIssuesStore[gameId] = mappedIssues;
+	sourceIssuesStore[gameId] = issues;
+};
 
-export const getIssues = (gameId: UUID): Array<Issue> => {
-	return store[gameId];
+export const getMappedIssues = (gameId: UUID): Array<Issue> => {
+	return mappedIssuesStore[gameId];
+};
+
+export const getSourceIssues = (gameId: UUID): any => {
+	return sourceIssuesStore[gameId];
 };
 
 export const clearIssues = (gameId: UUID): void => {
-	delete store[gameId];
+	delete mappedIssuesStore[gameId];
+	delete sourceIssuesStore[gameId];
 };

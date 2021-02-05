@@ -2,7 +2,7 @@
 
 import { Machine } from 'xstate';
 import hardCodedIssues from '../../data/issuesSmall.json';
-import { getIssues } from '../services/issueStore';
+import { getMappedIssues, getSourceIssues } from '../services/issueStore';
 import {
 	ConfirmMoveEvent,
 	FSMContext,
@@ -12,6 +12,7 @@ import {
 	NoChangeClientEvent,
 	Player,
 	UUID,
+	TrackedEvent,
 } from '../types';
 import actions from './actions';
 import {
@@ -22,15 +23,16 @@ import {
 	oneOrMoreConnectedPlayers,
 } from './guards';
 
-export const createMachine = (gameId: UUID, gameOwnerId: UUID): FSMStateMachine => {
+export const createMachine = (gameId: UUID): FSMStateMachine => {
 	return Machine<FSMContext, FSMStateSchema, FSMEvent>(
 		{
 			context: <FSMContext>{
 				gameId,
-				issues: getIssues(gameId) || hardCodedIssues.issues,
-				gameOwnerId,
+				issues: getMappedIssues(gameId) || hardCodedIssues.issues,
+				sourceIssues: getSourceIssues(gameId),
 				players: <Array<Player>>[],
 				ephemeral: {},
+				moveHistory: <Array<TrackedEvent>>[],
 			},
 			id: 'GAME',
 			initial: 'ACTIVE',
@@ -60,6 +62,11 @@ export const createMachine = (gameId: UUID, gameOwnerId: UUID): FSMStateMachine 
 									actions: ['updatePoints'],
 									cond: isPlayersTurn,
 								},
+								ADD_COMMENT: {
+									target: 'PLAYING',
+									actions: ['addComment'],
+									cond: isPlayersTurn,
+								},
 								OPEN_ISSUE: {
 									target: 'PLAYING',
 									actions: ['openIssue'],
@@ -81,7 +88,7 @@ export const createMachine = (gameId: UUID, gameOwnerId: UUID): FSMStateMachine 
 										},
 									},
 									{
-										target: 'FINISHED',
+										target: 'GAME_OVER',
 										actions: ['confirmMove'],
 										cond: (context: FSMContext, event: ConfirmMoveEvent) => {
 											return (
@@ -101,7 +108,7 @@ export const createMachine = (gameId: UUID, gameOwnerId: UUID): FSMStateMachine 
 										},
 									},
 									{
-										target: 'FINISHED',
+										target: 'GAME_OVER',
 										actions: ['noChange'],
 										cond: (context: FSMContext, event: NoChangeClientEvent) => {
 											return isPlayersTurn(context, event) && areOtherPlayersDone(context, event);
@@ -110,6 +117,22 @@ export const createMachine = (gameId: UUID, gameOwnerId: UUID): FSMStateMachine 
 								],
 								PLAYER_DISCONNECT: {
 									target: 'PLAYING',
+									actions: ['playerDisconnect'],
+								},
+								PERSIST: {
+									target: '#GAME.PERSISTED',
+								},
+							},
+						},
+						GAME_OVER: {
+							entry: ['updateJira'],
+							on: {
+								JOIN_GAME: {
+									target: 'GAME_OVER',
+									actions: ['addPlayer'],
+								},
+								PLAYER_DISCONNECT: {
+									target: 'GAME_OVER',
 									actions: ['playerDisconnect'],
 								},
 								PERSIST: {
