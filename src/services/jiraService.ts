@@ -126,25 +126,31 @@ export const updateIssuesInJira = async (
 		const promises = chunk.map((event) => {
 			const putIssueURL = getPutIssueURL(jiraCompanyName, event.issueId);
 			switch (event.type) {
-				case 'UPDATE_POINTS':
+				case 'UPDATE_POINTS': {
 					const fieldName = getFieldName(sourceIssues, event.issueId, 'Story Points');
-					return putIssue(putIssueURL, headers, {
+					const data = {
 						fields: {
 							[fieldName]: event.points,
+							// hardcode this due to duplicate 'Story Points' fields in JIRA for unknown reason
+							// customfield_10035: event.points,
 						},
-					});
-				case 'ADD_COMMENT':
-					return putIssue(putIssueURL, headers, {
+					};
+					return putIssue(putIssueURL, headers, data);
+				}
+				case 'ADD_COMMENT': {
+					const data = {
 						update: {
 							comment: [
 								{
 									add: {
-										body: event.comment,
+										body: `<p>${event.comment}</p>`,
 									},
 								},
 							],
 						},
-					});
+					};
+					return putIssue(putIssueURL, headers, data);
+				}
 			}
 		});
 
