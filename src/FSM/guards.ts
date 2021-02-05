@@ -31,7 +31,7 @@ export const areOtherPlayersDone = (context: FSMContext, event: FSMEvent): boole
 		if (playerId === activePlayerId || !isPlayerConnected(player)) {
 			return result;
 		}
-		if (status === PlayerStatus.AwaitingMove) {
+		if (status !== PlayerStatus.Skipped) {
 			return false;
 		}
 		return result;
