@@ -99,7 +99,7 @@
 		"db:rollback": "knex migrate:rollback",
 		"dev": "ts-node src/main.ts --port 8000",
 		"lint": "eslint '**/*.{js,ts}' --fix",
-		"postinstall": "npm run compile && npm run db:migrate",
+		"build": "npm run compile && npm run db:migrate",
 		"pretty": "prettier '**/*.json' --write",
 		"start": "node target/src/main.js --port 8000",
 		"test:watch": "jest --verbose --watch",
