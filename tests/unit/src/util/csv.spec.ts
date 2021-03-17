@@ -1,15 +1,15 @@
 'use strict';
 
 import fs from 'fs';
-import { mapCSVExportToIssues } from '../../../src/util/issues';
-import { Issue } from '../../../src/types';
+import { mapCSVExportToIssues } from '../../../../src/util/issues';
+import { Issue } from '../../../../src/types';
 
 describe('util/csv/getIssuesFromCSV', () => {
 	let result: Array<Issue>;
 	let testIssuesCSV: string;
 
 	beforeEach(async () => {
-		testIssuesCSV = fs.readFileSync('__tests__/data/testIssues.csv').toString();
+		testIssuesCSV = fs.readFileSync('tests/unit/data/testIssues.csv').toString();
 		result = await mapCSVExportToIssues(testIssuesCSV);
 	});
 	it('should convert CSV to JS Object and return', () => {

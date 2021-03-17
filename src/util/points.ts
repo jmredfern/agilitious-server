@@ -10,5 +10,5 @@ export const getRandomPoints = (): number => {
 };
 
 export const validateFibonacciNumber = (number: number): boolean => {
-	return fibonacciNumbers.find(fibonacciNumber => number === fibonacciNumber) !== undefined;
+	return fibonacciNumbers.find((fibonacciNumber) => number === fibonacciNumber) !== undefined;
 };

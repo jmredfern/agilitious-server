@@ -1,8 +1,8 @@
 'use strict';
 
-import { areOtherPlayersDone } from '../../../src/FSM/guards';
+import { areOtherPlayersDone } from '../../../../src/FSM/guards';
 import WebSocket from 'ws';
-import { FSMContext, Player, PlayerStatus, FSMEvent } from '../../../src/types';
+import { FSMContext, Player, PlayerStatus, FSMEvent } from '../../../../src/types';
 import { inspect } from 'util';
 
 const { Skipped, AwaitingMove, ConfirmedChange } = PlayerStatus;
@@ -200,7 +200,7 @@ describe('FSM/guards', () => {
 							playerId: 'player4',
 						},
 					],
-					expectedResult: true,
+					expectedResult: false,
 				},
 			],
 			[
@@ -256,7 +256,7 @@ describe('FSM/guards', () => {
 							playerId: 'player4',
 						},
 					],
-					expectedResult: true,
+					expectedResult: false,
 				},
 			],
 			[

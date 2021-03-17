@@ -1,8 +1,8 @@
 'use strict';
 
 import WebSocket from 'ws';
-import { getNextPlayerId } from '../../../src/util/player';
-import { UUID, Player, PlayerStatus, FSMWebSocket } from '../../../src/types';
+import { getNextPlayerId } from '../../../../src/util/player';
+import { UUID, Player, PlayerStatus, FSMWebSocket } from '../../../../src/types';
 
 const { AwaitingMove } = PlayerStatus;
 
