@@ -6,6 +6,7 @@ import commandLineArgs from 'command-line-args';
 import axios from 'axios';
 import { Logger } from 'log4js';
 import { getLoggerByFilename } from './util/logger';
+import { watchMemoryStats } from './util/memwatch';
 
 const log: Logger = getLoggerByFilename(__filename);
 
@@ -23,6 +24,8 @@ axios.interceptors.response.use(
 		throw error;
 	},
 );
+
+watchMemoryStats();
 
 server.start(process.env.PORT || port);
 
