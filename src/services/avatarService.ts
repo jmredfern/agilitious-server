@@ -26,7 +26,7 @@ const generateAvatarSetsCache = async () => {
 	avatarSetsCache = await avatarSetFilenames.reduce(
 		async (outputPromise: Promise<Array<AvatarSet>>, avatarSetFilename: string) => {
 			const avatarFilenames: Array<string> = await readdir(`${AVATAR_DIR}/${avatarSetFilename}/svg`);
-			const avatarIds = avatarFilenames.map(avatarFilename => {
+			const avatarIds = avatarFilenames.map((avatarFilename) => {
 				const avatarId: UUID = <UUID>uuid.v5(avatarFilename, UUID_V5_NAMESPACE);
 				avatarIdToFilepathMap[avatarId] = `${AVATAR_DIR}/${avatarSetFilename}/svg/${avatarFilename}`;
 				return avatarId;
@@ -55,7 +55,7 @@ export const getAvatarFilepath = (avatarId: UUID): string => {
 
 export const getAvailableAvatarId = (players: Array<Player>, avatarSetId: UUID): UUID => {
 	const avatarSets = getAvatarSets();
-	let avatarSet = avatarSets.find(set => set.avatarSetId === avatarSetId);
+	let avatarSet = avatarSets.find((set) => set.avatarSetId === avatarSetId);
 	if (avatarSet === undefined) {
 		log.warn(`Avatar set ${avatarSetId} not found, using default`);
 		avatarSet = avatarSets[0];

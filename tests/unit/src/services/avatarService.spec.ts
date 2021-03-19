@@ -1,7 +1,7 @@
 'use strict';
 
-import { _getNextAvatarId } from '../../../src/services/avatarService';
-import { UUID, Player, PlayerStatus, FSMWebSocket } from '../../../src/types';
+import { _getNextAvatarId } from '../../../../src/services/avatarService';
+import { UUID, Player, PlayerStatus, FSMWebSocket } from '../../../../src/types';
 
 const { AwaitingMove } = PlayerStatus;
 

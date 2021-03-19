@@ -5,23 +5,6 @@
 	},
 	"dependencies": {
 		"@airbnb/node-memwatch": "^2.0.0",
-		"@types/airbnb__node-memwatch": "^2.0.0",
-		"@types/axios": "^0.14.0",
-		"@types/body-parser": "^1.19.0",
-		"@types/command-line-args": "^5.0.0",
-		"@types/cors": "^2.8.10",
-		"@types/csvtojson": "^1.1.5",
-		"@types/esm": "^3.2.0",
-		"@types/express": "^4.17.7",
-		"@types/jest": "^26.0.9",
-		"@types/knex": "^0.16.1",
-		"@types/lodash": "^4.14.168",
-		"@types/log4js": "^2.3.5",
-		"@types/safe-json-stringify": "^1.1.1",
-		"@types/uuid": "^8.3.0",
-		"@types/ws": "^7.2.5",
-		"@typescript-eslint/eslint-plugin": "^3.9.0",
-		"@typescript-eslint/parser": "^3.8.0",
 		"async-mutex": "^0.2.4",
 		"axios": "^0.21.1",
 		"body-parser": "^1.19.0",
@@ -41,8 +24,25 @@
 		"ws": "^7.4.4",
 		"xstate": "^4.11.0"
 	},
-	"description": "",
 	"devDependencies": {
+		"@jmredfern/websocket-with-promises": "^1.0.3",
+		"@types/airbnb__node-memwatch": "^2.0.0",
+		"@types/axios": "^0.14.0",
+		"@types/body-parser": "^1.19.0",
+		"@types/command-line-args": "^5.0.0",
+		"@types/cors": "^2.8.10",
+		"@types/csvtojson": "^1.1.5",
+		"@types/esm": "^3.2.0",
+		"@types/express": "^4.17.7",
+		"@types/jest": "^26.0.9",
+		"@types/knex": "^0.16.1",
+		"@types/lodash": "^4.14.168",
+		"@types/log4js": "^2.3.5",
+		"@types/safe-json-stringify": "^1.1.1",
+		"@types/uuid": "^8.3.0",
+		"@types/ws": "^7.2.5",
+		"@typescript-eslint/eslint-plugin": "^3.9.0",
+		"@typescript-eslint/parser": "^3.8.0",
 		"coveralls": "^3.1.0",
 		"eslint": "^7.22.0",
 		"eslint-config-prettier": "^8.1.0",
@@ -58,32 +58,12 @@
 	"engines": {
 		"node": "14.4.0"
 	},
-	"eslintConfig": {
-		"env": {
-			"jest": true,
-			"node": true
-		},
-		"extends": [
-			"xo",
-			"prettier"
-		],
-		"rules": {
-			"prettier/prettier": "error",
-			"comma-dangle": 1
-		}
-	},
-	"files": [
-		"lib"
-	],
 	"homepage": "",
 	"husky": {
 		"hooks": {
 			"pre-commit": "lint-staged && npm run compile"
 		}
 	},
-	"keywords": [
-		""
-	],
 	"lint-staged": {
 		"**/*.json": [
 			"prettier --write"
@@ -105,8 +85,9 @@
 		"build": "npm run compile && npm run db:migrate",
 		"pretty": "prettier '**/*.json' --write",
 		"start": "node --max_old_space_size=2560 target/src/main.js --port 8000",
-		"test:watch": "jest --verbose --watch",
-		"test": "jest --verbose"
+		"test:component": "jest --verbose ./tests/component",
+		"test:watch": "jest --verbose --watch ./tests/unit",
+		"test": "jest --verbose ./tests/unit"
 	},
-	"version": "0.0.0"
+	"version": "1.0.0"
 }

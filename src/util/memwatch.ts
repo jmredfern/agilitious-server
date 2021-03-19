@@ -17,7 +17,7 @@ export const watchMemoryStats = (): void => {
 			malloced_memory,
 			peak_malloced_memory,
 		} = stats;
-		log.debug({
+		log.trace({
 			total_heap_size: prettyBytes(total_heap_size),
 			total_heap_size_executable: prettyBytes(total_heap_size_executable),
 			total_physical_size: prettyBytes(total_physical_size),
