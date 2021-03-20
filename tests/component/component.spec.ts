@@ -55,5 +55,5 @@ describe('basic gameplay', () => {
 
 		expect(await players[0].getMessage()).toMatchObject({ phase: 'GAME_OVER', type: 'PLAYER_SKIPPED' });
 		expect(await players[1].getMessage()).toMatchObject({ phase: 'GAME_OVER', type: 'PLAYER_SKIPPED' });
-	}, 10000);
+	}, 20000);
 });
