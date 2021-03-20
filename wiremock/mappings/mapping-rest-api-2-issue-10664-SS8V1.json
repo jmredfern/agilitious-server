@@ -1,0 +1,34 @@
+{
+  "id" : "e99dd75a-166d-345e-9da1-6ba818e593a8",
+  "request" : {
+    "url" : "/rest/api/2/issue/10664",
+    "method" : "PUT",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"fields\":{\"customfield_10035\":13}}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 204,
+    "bodyFileName" : "body-rest-api-2-issue-10664-SS8V1.json",
+    "headers" : {
+      "Server" : "AtlassianProxy/1.15.8.1",
+      "cache-control" : "no-cache, no-store, no-transform",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "Strict-Transport-Security" : "max-age=315360000; includeSubDomains; preload",
+      "Date" : "Sat, 20 Mar 2021 04:46:51 GMT",
+      "ATL-TraceId" : "93349145cf2fafc8",
+      "x-arequestid" : "2fb1ad64-be04-42ea-b042-34b2d89f8d0d",
+      "x-aaccountid" : "557058%3A3497e4c5-ff7c-4641-9060-019a8b6270bd",
+      "X-XSS-Protection" : "1; mode=block",
+      "timing-allow-origin" : "*",
+      "x-envoy-upstream-service-time" : "83",
+      "X-Content-Type-Options" : "nosniff",
+      "micros-issuer" : "micros/edge-authenticator",
+      "set-cookie" : "atlassian.xsrf.token=206d9a47-e124-4000-9c41-875c855f4a48_6c54d292926de9819eb4c62834a4dca144d49383_lin; Path=/; Secure",
+      "Expect-CT" : "report-uri=\"https://web-security-reports.services.atlassian.com/expect-ct-report/global-proxy\", enforce, max-age=86400"
+    }
+  },
+  "uuid" : "e99dd75a-166d-345e-9da1-6ba818e593a8"
+}

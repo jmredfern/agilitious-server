@@ -2,7 +2,6 @@
 
 import { cloneDeep } from 'lodash/fp';
 import safeJsonStringify from 'safe-json-stringify';
-import WebSocket from 'ws';
 import { State } from 'xstate';
 import * as gamesDAO from '../DAO/games';
 import { FSMContext, FSMState, FSMStateConfig, Player, UUID } from '../types';
@@ -23,7 +22,6 @@ export const persistState = async (state: any): Promise<any> => {
 	const clonedState = cloneDeep(state);
 	const transitionedState = transitionStateToPersisted(clonedState);
 	transitionedState.context.players.forEach((player: Player) => {
-		player.websocket.readyState = WebSocket.CLOSED;
 		player.ephemeral = {};
 	});
 	transitionedState.context.ephemeral = {};

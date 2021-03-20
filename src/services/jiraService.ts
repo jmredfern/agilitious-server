@@ -14,9 +14,9 @@ const CHUNK_SIZE = 10;
 
 const COMPANY_ATLASSIAN_URL = config.get('companyAtlassianURL');
 
-// template parameters: (projectId: string)
+// template parameters: (jiraProjectId: string)
 const getIssueSearchJQL = _.template(
-	'project = ${projectId} AND type != Sub-task AND resolution = Unresolved AND (Sprint is EMPTY OR Sprint not in ' +
+	'project = ${jiraProjectId} AND type != Sub-task AND resolution = Unresolved AND (Sprint is EMPTY OR Sprint not in ' +
 		'openSprints()) ORDER BY key DESC',
 );
 

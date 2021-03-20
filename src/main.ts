@@ -20,7 +20,7 @@ const { port } = options;
 axios.interceptors.response.use(
 	(response) => response,
 	(error) => {
-		log.error(error.response.data);
+		log.error(error.response ? error.response.data : error);
 		throw error;
 	},
 );
