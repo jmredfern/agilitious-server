@@ -1,0 +1,1 @@
+uid=$(id -u) docker-compose -f stack.yml up

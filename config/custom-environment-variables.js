@@ -1,3 +1,3 @@
 module.exports = {
-	companyAtlassianURL: COMPANY_ATLASSIAN_URL,
+	companyAtlassianURL: 'COMPANY_ATLASSIAN_URL',
 };

@@ -87,7 +87,7 @@
 		"build": "npm run compile && npm run db:migrate",
 		"pretty": "prettier '**/*.json' --write",
 		"start": "node --max_old_space_size=2560 target/src/main.js --port 8000",
-		"test:component": "jest --verbose ./tests/component",
+		"test:component": "jest --verbose --detectOpenHandles ./tests/component",
 		"test:watch": "jest --verbose --watch ./tests/unit",
 		"test": "jest --verbose ./tests/unit"
 	},

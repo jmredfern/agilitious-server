@@ -1,0 +1,35 @@
+{
+  "id" : "87ed308d-a1d5-3828-b45c-0777d52cb622",
+  "request" : {
+    "url" : "/rest/api/2/search",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"expand\":[\"renderedFields\",\"names\"],\"fields\":[\"*navigable\",\"comment\"],\"jql\":\"project = EN AND type != Sub-task AND resolution = Unresolved AND (Sprint is EMPTY OR Sprint not in openSprints()) ORDER BY key DESC\",\"maxResults\":50,\"startAt\":0}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-rest-api-2-search-ouBSG.json",
+    "headers" : {
+      "Server" : "AtlassianProxy/1.15.8.1",
+      "vary" : "Accept-Encoding",
+      "cache-control" : "no-cache, no-store, no-transform",
+      "Content-Type" : "application/json;charset=UTF-8",
+      "Strict-Transport-Security" : "max-age=315360000; includeSubDomains; preload",
+      "Date" : "Sat, 20 Mar 2021 04:45:59 GMT",
+      "ATL-TraceId" : "f17d28a57c1e80ad",
+      "x-arequestid" : "0c15bff4-1474-4188-8eef-e591faecdc72",
+      "x-aaccountid" : "557058%3A3497e4c5-ff7c-4641-9060-019a8b6270bd",
+      "X-XSS-Protection" : "1; mode=block",
+      "timing-allow-origin" : "*",
+      "x-envoy-upstream-service-time" : "656",
+      "X-Content-Type-Options" : "nosniff",
+      "micros-issuer" : "micros/edge-authenticator",
+      "set-cookie" : "atlassian.xsrf.token=206d9a47-e124-4000-9c41-875c855f4a48_5215836afd17418ce5cccb184bf9812f78f7ed1b_lin; Path=/; Secure",
+      "Expect-CT" : "report-uri=\"https://web-security-reports.services.atlassian.com/expect-ct-report/global-proxy\", enforce, max-age=86400"
+    }
+  },
+  "uuid" : "87ed308d-a1d5-3828-b45c-0777d52cb622"
+}
