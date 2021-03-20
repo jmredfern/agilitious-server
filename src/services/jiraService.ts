@@ -5,20 +5,26 @@ import axios from 'axios';
 import { TrackedEvent } from '../types';
 import { getLoggerByFilename } from '../util/logger';
 import { Logger } from 'log4js';
+import config from 'config';
 
 const log: Logger = getLoggerByFilename(__filename);
 
 const PAGE_SIZE = 50;
 const CHUNK_SIZE = 10;
 
-const getIssueSearchJQL = (projectId: string) =>
-	`project = ${projectId} AND type != Sub-task AND resolution = Unresolved AND (Sprint is EMPTY OR Sprint not in ` +
-	'openSprints()) ORDER BY key DESC';
+const COMPANY_ATLASSIAN_URL = config.get('companyAtlassianURL');
 
-const getIssueSearchURL = (jiraCompanyName: string) => `https://${jiraCompanyName}.atlassian.net/rest/api/2/search`;
+// template parameters: (projectId: string)
+const getIssueSearchJQL = _.template(
+	'project = ${projectId} AND type != Sub-task AND resolution = Unresolved AND (Sprint is EMPTY OR Sprint not in ' +
+		'openSprints()) ORDER BY key DESC',
+);
 
-const getPutIssueURL = (jiraCompanyName: string, issueId: string) =>
-	`https://${jiraCompanyName}.atlassian.net/rest/api/2/issue/${issueId}`;
+// template parameters: (jiraCompanyName: string)
+const getIssueSearchURL = _.template(COMPANY_ATLASSIAN_URL + '/rest/api/2/search');
+
+// template parameters: (jiraCompanyName: string, issueId: string)
+const getPutIssueURL = _.template(COMPANY_ATLASSIAN_URL + '/rest/api/2/issue/${issueId}');
 
 const getHeaders = (email: string, apiToken: string): any => {
 	const authorizationToken = Buffer.from(`${email}:${apiToken}`, 'utf8').toString('base64');
@@ -66,8 +72,8 @@ export const getIssuesFromJira = async (
 	jiraEmail: string,
 	jiraAPIToken: string,
 ): Promise<any> => {
-	const issueSearchJQL = getIssueSearchJQL(jiraProjectId);
-	const issueSearchURL = getIssueSearchURL(jiraCompanyName);
+	const issueSearchJQL = getIssueSearchJQL({ jiraProjectId });
+	const issueSearchURL = getIssueSearchURL({ jiraCompanyName });
 	const headers = getHeaders(jiraEmail, jiraAPIToken);
 	const issuesCount = await getIssuesCount(issueSearchJQL, issueSearchURL, headers);
 	const pageCount = Math.ceil(issuesCount / PAGE_SIZE);
@@ -124,7 +130,10 @@ export const updateIssuesInJira = async (
 
 	for (const chunk of chunks) {
 		const promises = chunk.map((event) => {
-			const putIssueURL = getPutIssueURL(jiraCompanyName, event.issueId);
+			const putIssueURL = getPutIssueURL({
+				jiraCompanyName,
+				issueId: event.issueId,
+			});
 			switch (event.type) {
 				case 'UPDATE_POINTS': {
 					const fieldName = getFieldName(sourceIssues, event.issueId, 'Story Points');
