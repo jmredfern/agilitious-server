@@ -2,4 +2,3 @@ version: 1
 labels:
 - label: "notify-in-slack"
   branch: "^((?!^dependabot*).)*$"
-  branch: "^((?!^not-this-branch*).)*$"

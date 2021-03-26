@@ -1,12 +1,11 @@
 ---
 name: Label PRs
-uses: srvaroa/labeler@v0.6
 'on':
   - pull_request
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: srvaroa/labeler@master
+      - uses: srvaroa/labeler@v0.6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
