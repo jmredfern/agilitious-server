@@ -1,0 +1,20 @@
+{
+	"labels": {
+	  "notify": {
+		"name": "notify",
+		"colour": "#00ff00",
+		"description": "Causes notifications about updates to the PR to be sent."
+	  }
+	},
+	"pr": {
+	  "notify": {
+		"requires": 1,
+		"conditions": [
+		  {
+			"type": "branchMatches",
+			"pattern": "^((?!^dependabot\/).)*$"
+		  }
+		]
+	  }
+	}
+  }
