@@ -1,8 +1,14 @@
 ---
-'on':
-  - pull_request
+on:
+  pull_request:
+    types:
+      - labeled
+      - opened
+      - closed
+      - reopened
 jobs:
-  label:
+  add-labels:
+    if: github.event.action != 'closed' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     name: Add labels
     steps:
