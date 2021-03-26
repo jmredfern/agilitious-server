@@ -1,0 +1,19 @@
+---
+'on':
+  pull_request:
+    types:
+      - opened
+jobs:
+  update-pr-status:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Apply 'should-notify' label
+        uses: IvanFon/super-labeler-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: PR opened
+        uses: dflydev/check-runs-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          conclusion: success
