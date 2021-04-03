@@ -5,7 +5,7 @@ import * as server from './server';
 import commandLineArgs from 'command-line-args';
 import axios from 'axios';
 import { Logger } from 'log4js';
-import { getLoggerByFilename } from './util/logger';
+import { getLoggerByFilename, trimString } from './util/logger';
 import { watchMemoryStats } from './util/memwatch';
 
 const log: Logger = getLoggerByFilename(__filename);
@@ -24,6 +24,10 @@ axios.interceptors.response.use(
 		throw error;
 	},
 );
+
+process.on('unhandledRejection', (error: Error) => {
+	log.error(`unhandledRejection Error: ${trimString(error.message, 2048)}`);
+});
 
 watchMemoryStats();
 
