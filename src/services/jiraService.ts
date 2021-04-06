@@ -71,7 +71,8 @@ export const getIssuesFromJira = async (
 	jiraProjectId: string,
 	jiraEmail: string,
 	jiraAPIToken: string,
-): Promise<any> => {
+	getIssuesHandler: (issues: any[]) => Promise<void>,
+): Promise<void> => {
 	const issueSearchJQL = getIssueSearchJQL({ jiraProjectId });
 	const issueSearchURL = getIssueSearchURL({ jiraCompanyName });
 	const headers = getHeaders(jiraEmail, jiraAPIToken);
@@ -79,9 +80,8 @@ export const getIssuesFromJira = async (
 	const pageCount = Math.ceil(issuesCount / PAGE_SIZE);
 	const chunks = _.chunk(Array.from(Array(pageCount).keys()), CHUNK_SIZE);
 
-	const issues: any[] = [];
-
 	for (const chunk of chunks) {
+		const issues: any[] = [];
 		const promises = chunk.map((pageId) => {
 			return getIssuesPage(pageId * PAGE_SIZE, PAGE_SIZE, issueSearchJQL, issueSearchURL, headers);
 		});
@@ -104,18 +104,16 @@ export const getIssuesFromJira = async (
 				issues.push(issue);
 			});
 		});
+		log.info(
+			`Retrieved ${issues.length} issues from JIRA for company '${jiraCompanyName}', project '${jiraProjectId}'`,
+		);
+		await getIssuesHandler(issues);
 	}
-
-	log.info(
-		`Retrieved ${issues.length} issues from JIRA for company '${jiraCompanyName}', project '${jiraProjectId}'`,
-	);
-
-	return issues;
 };
 
-const getFieldName = (sourceIssues: any, issueId: any, fieldName: any): any => {
-	const sourceIssue = sourceIssues.find((issue: any) => issue.id === issueId);
-	return sourceIssue.fieldNames[fieldName];
+const getFieldName = (jiraIssues: any, issueId: any, fieldName: any): any => {
+	const jiraIssue = jiraIssues.find((issue: any) => issue.id === issueId);
+	return jiraIssue.fieldNames[fieldName];
 };
 
 export const updateIssuesInJira = async (
@@ -123,7 +121,7 @@ export const updateIssuesInJira = async (
 	jiraCompanyName: string,
 	jiraEmail: string,
 	jiraAPIToken: string,
-	sourceIssues: any,
+	jiraIssues: any,
 ): Promise<void> => {
 	const headers = getHeaders(jiraEmail, jiraAPIToken);
 	const chunks = _.chunk(events, CHUNK_SIZE);
@@ -136,7 +134,7 @@ export const updateIssuesInJira = async (
 			});
 			switch (event.type) {
 				case 'UPDATE_POINTS': {
-					const fieldName = getFieldName(sourceIssues, event.issueId, 'Story Points');
+					const fieldName = getFieldName(jiraIssues, event.issueId, 'Story Points');
 					const data = {
 						fields: {
 							[fieldName]: event.points,

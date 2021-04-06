@@ -20,7 +20,7 @@ import { sendEvent } from '../util/websocket';
 import * as fsmStore from '../FSM/fsmStore';
 import { createMachine } from '../FSM/machine';
 import { getPersistedState, persistState } from '../FSM/persistence';
-import { storeAPIRequestIssues } from './issueStore';
+import { putJIRAIssues } from './issueService';
 import { getIssuesFromJira } from './jiraService';
 import { inspect } from 'util';
 
@@ -40,8 +40,15 @@ const acquireGetFSMMutex = async (gameId: UUID) => {
 const retrieveAndStoreJiraIssues = async (gameId: UUID, playerId: UUID, event: ClientEvent): Promise<void> => {
 	const gameOwner = getGameOwner(gameId, playerId, event as CreateGameClientEvent);
 	const { jiraCompanyName, jiraProjectId, jiraEmail, jiraAPIToken } = gameOwner;
-	const issues = await getIssuesFromJira(jiraCompanyName, jiraProjectId, jiraEmail, jiraAPIToken);
-	storeAPIRequestIssues(gameOwner.gameId, issues);
+	await getIssuesFromJira(
+		jiraCompanyName,
+		jiraProjectId,
+		jiraEmail,
+		jiraAPIToken,
+		async (issues: any[]): Promise<void> => {
+			await putJIRAIssues(gameId, issues);
+		},
+	);
 };
 
 const logTransition = (state: any): any => {

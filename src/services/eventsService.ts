@@ -21,6 +21,7 @@ import {
 } from 'types';
 import * as uuid from 'uuid';
 import { getPhase } from '../util/state';
+import { getIssues } from './issueService';
 
 const getPlayersState = (players: Array<Player>): Array<PlayerState> => {
 	return players.map(
@@ -38,22 +39,25 @@ const getPlayersState = (players: Array<Player>): Array<PlayerState> => {
 
 export const sendGameState = (state: FSMTypestate, eventByPlayerId: UUID): void => {
 	const { value: stateValue, context } = state;
-	const { activePlayerId, gameId, issues, gameOwner, players } = context;
+	const { activePlayerId, gameId, gameOwner, players } = context;
 	const playerIndex = getPlayerIndex(players, eventByPlayerId);
 	const player = players[playerIndex];
-	const event: GameStateServerEvent = {
-		type: 'GAME_STATE',
-		id: <UUID>uuid.v4(),
-		eventByPlayerId,
+	(async () => {
+		const issues = await getIssues(gameId);
+		const event: GameStateServerEvent = {
+			type: 'GAME_STATE',
+			id: <UUID>uuid.v4(),
+			eventByPlayerId,
 
-		activePlayerId,
-		gameOwnerId: gameOwner ? gameOwner.playerId : <UUID>'',
-		phase: getPhase(stateValue),
-		playerId: player.playerId,
-		players: getPlayersState(players),
-		issues, // Put this one last so that issues is the field trimmed when logging the event
-	};
-	sendServerEvent(player, gameId, event);
+			activePlayerId,
+			gameOwnerId: gameOwner ? gameOwner.playerId : <UUID>'',
+			phase: getPhase(stateValue),
+			playerId: player.playerId,
+			players: getPlayersState(players),
+			issues, // Put this one last so that issues is the field trimmed when logging the event
+		};
+		sendServerEvent(player, gameId, event);
+	})();
 };
 
 export const sendUpdatedIssue = (context: FSMContext, issue: Issue, eventByPlayerId: UUID): void => {
