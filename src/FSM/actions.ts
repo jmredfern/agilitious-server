@@ -5,7 +5,8 @@ import { inspect } from 'util';
 import * as uuid from 'uuid';
 import * as gamesDAO from '../DAO/games';
 import { updateIssuesInJira } from '../services/jiraService';
-import { clearIssues } from '../services/issueStore';
+import { getIssue, putIssue } from '../services/issueService';
+
 import {
 	sendGameActivated,
 	sendGameState,
@@ -16,14 +17,13 @@ import {
 	sendPlayerDisconnected,
 	sendPlayerSkipped,
 	sendUpdatedIssue,
-} from '../services/serverEvents';
+} from '../services/eventsService';
 import {
 	CloseIssueClientEvent,
 	ConfirmMoveEvent,
 	CreateGameClientEvent,
 	FSMContext,
 	FSMEvent,
-	Issue,
 	JoinGameClientEvent,
 	NoChangeClientEvent,
 	OpenIssueClientEvent,
@@ -41,6 +41,7 @@ import { validateFibonacciNumber } from '../util/points';
 import * as fsmStore from './fsmStore';
 import { allPlayersConnected } from './guards';
 import { ActionFunction } from 'xstate';
+import { getJiraIssues } from '../DAO/issues';
 
 const { AwaitingMove, ConfirmedChange } = PlayerStatus;
 
@@ -100,26 +101,29 @@ actions.addPlayer = (context: FSMContext, event: FSMEvent, { state }: any): void
 };
 
 actions.updatePoints = (context: FSMContext, event: FSMEvent): void => {
-	const { issues } = context;
+	const { gameId } = context;
 	const updatePointsClientEvent = <UpdatePointsClientEvent>event;
 	const { issueId, playerId, points } = updatePointsClientEvent;
 	if (!validateFibonacciNumber(points)) {
 		log.warn(`Tried to update story points with non fibonacci number!! [event:${inspect(event)}]`);
 		return;
 	}
-	const issue = issues.find(({ id }: Issue): boolean => id === issueId);
-	if (issue) {
-		issue.currentPoints = points;
-		context.currentMoves[updatePointsClientEvent.issueId] = updatePointsClientEvent;
-	} else {
-		log.warn(`Issue not found while trying to update points. [issueId:${issueId}]`);
-		return;
-	}
-	sendUpdatedIssue(context, issue, playerId);
+	(async () => {
+		const issue = await getIssue(issueId, gameId);
+		if (issue) {
+			issue.currentPoints = points;
+			await putIssue(gameId, issue);
+			context.currentMoves[updatePointsClientEvent.issueId] = updatePointsClientEvent;
+		} else {
+			log.warn(`Issue not found while trying to update points. [issueId:${issueId}]`);
+			return;
+		}
+		sendUpdatedIssue(context, issue, playerId);
+	})();
 };
 
 actions.addComment = (context: FSMContext, event: FSMEvent): void => {
-	const { issues, players } = context;
+	const { players, gameId } = context;
 	const addCommentClientEvent = <AddCommentClientEvent>event;
 	const { issueId, playerId, comment } = addCommentClientEvent;
 	const player = players.find(({ playerId: id }: Player) => id === playerId);
@@ -130,17 +134,20 @@ actions.addComment = (context: FSMContext, event: FSMEvent): void => {
 		log.warn(`Player not found while trying to add coment. [issueId:${issueId}]`);
 		return;
 	}
-	const issue = issues.find(({ id }: Issue): boolean => id === issueId);
-	if (issue) {
-		issue.comments.push({
-			author: player.name,
-			body: addCommentClientEvent.comment,
-		});
-	} else {
-		log.warn(`Issue not found while trying to update points. [issueId:${issueId}]`);
-		return;
-	}
-	sendUpdatedIssue(context, issue, playerId);
+	(async () => {
+		const issue = await getIssue(issueId, gameId);
+		if (issue) {
+			issue.comments.push({
+				author: player.name,
+				body: addCommentClientEvent.comment,
+			});
+			await putIssue(gameId, issue);
+		} else {
+			log.warn(`Issue not found while trying to update points. [issueId:${issueId}]`);
+			return;
+		}
+		sendUpdatedIssue(context, issue, playerId);
+	})();
 };
 
 actions.openIssue = (context: FSMContext, event: FSMEvent): void => {
@@ -181,7 +188,7 @@ actions.noChange = (context: FSMContext, event: FSMEvent, { state }: any): void 
 
 actions.playerDisconnect = (context: FSMContext, event: FSMEvent, { state }: any): void => {
 	const disconnectGracePeriodMs = 20000;
-	const { activePlayerId, players } = context;
+	const { activePlayerId, players, gameId } = context;
 	const { playerId } = <PlayerDisconnectClientEvent>event;
 	const cancelPlayerDisconnect = setTimeout(() => {
 		if (activePlayerId === playerId) {
@@ -189,6 +196,10 @@ actions.playerDisconnect = (context: FSMContext, event: FSMEvent, { state }: any
 			context.currentMoves = {};
 		}
 		sendPlayerDisconnected(state, playerId);
+		if (context.activePlayerId === activePlayerId) {
+			// there were no active players found so lets delete FSM from heap
+			fsmStore.removeFSM(gameId);
+		}
 	}, disconnectGracePeriodMs);
 	const player = getPlayer(players, playerId);
 	player.ephemeral.cancelPlayerDisconnect = cancelPlayerDisconnect;
@@ -237,9 +248,7 @@ actions.scheduleCleanup = async (context: FSMContext, event: FSMEvent): Promise<
 	const cleanupDelayMs = cleanupDelayHours * 60 * 60 * 1000;
 	setTimeout(async () => {
 		const { gameId } = context;
-		clearIssues(gameId);
 		fsmStore.removeFSM(gameId);
-		await gamesDAO.deleteGame(gameId);
 		log.info(
 			`Executed scheduled clean up, gameId: ${gameId}, event ${event.type} ${event.id} playerId ${event.playerId}`,
 		);
@@ -247,9 +256,10 @@ actions.scheduleCleanup = async (context: FSMContext, event: FSMEvent): Promise<
 };
 
 actions.updateJira = async (context: FSMContext): Promise<void> => {
-	const { moveHistory, gameOwner, sourceIssues } = context;
+	const { moveHistory, gameOwner, gameId } = context;
 	const { jiraCompanyName, jiraEmail, jiraAPIToken } = <GameOwner>gameOwner;
-	await updateIssuesInJira(moveHistory, jiraCompanyName, jiraEmail, jiraAPIToken, sourceIssues);
+	const jiraIssues = await getJiraIssues(gameId);
+	await updateIssuesInJira(moveHistory, jiraCompanyName, jiraEmail, jiraAPIToken, jiraIssues);
 };
 
 export default actions;

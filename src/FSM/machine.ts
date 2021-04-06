@@ -1,8 +1,6 @@
 'use strict';
 
 import { Machine } from 'xstate';
-import hardCodedIssues from '../../data/issuesSmall.json';
-import { getMappedIssues, getSourceIssues } from '../services/issueStore';
 import {
 	ConfirmMoveEvent,
 	FSMContext,
@@ -28,8 +26,6 @@ export const createMachine = (gameId: UUID): FSMStateMachine => {
 		{
 			context: <FSMContext>{
 				gameId,
-				issues: getMappedIssues(gameId) || hardCodedIssues.issues,
-				sourceIssues: getSourceIssues(gameId),
 				players: <Array<Player>>[],
 				ephemeral: {},
 				currentMoves: [],

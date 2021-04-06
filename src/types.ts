@@ -126,8 +126,6 @@ export interface FSMContext {
 	activePlayerId: UUID;
 	avatarSetId: UUID;
 	gameId: UUID;
-	issues: Array<Issue>;
-	sourceIssues: any;
 	gameOwner?: GameOwner;
 	players: Array<Player>;
 	ephemeral: {
@@ -297,6 +295,13 @@ export interface PlayerDisconnectServerEvent extends ServerEvent {
 export interface FSMNotFoundEvent extends ServerEvent {
 	type: 'FSM_NOT_FOUND';
 	gameId: UUID;
+}
+
+export interface IssueEntity {
+	id: string;
+	game_id: UUID;
+	issue: Issue;
+	jira_issue?: object;
 }
 
 export interface GameEntity {

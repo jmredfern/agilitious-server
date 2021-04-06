@@ -1,6 +1,6 @@
 'use strict';
 
-import { getKnex } from '../services/database';
+import { getKnex } from '../util/database';
 import { UUID, GameEntity } from 'types';
 
 const knex = getKnex();

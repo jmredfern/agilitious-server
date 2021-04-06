@@ -26,7 +26,7 @@ axios.interceptors.response.use(
 );
 
 process.on('unhandledRejection', (error: Error) => {
-	log.error(`unhandledRejection Error: ${trimString(error.message, 2048)}`);
+	log.error(`Unhandled rejection: ${error.stack}`);
 });
 
 watchMemoryStats();
